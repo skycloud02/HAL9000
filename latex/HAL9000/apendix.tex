@@ -2895,7 +2895,7 @@ priority because this function can only be called by other TRUSTED OS components
 To continue the example when writing the \func{ThreadSetPriority} function you should assert that
 the thread priority is a valid one and that \func{GetCurrentThread} returns a valid non-NULL thread.
 
-\section{Dissassembly}
+\section{Disassembly}
 
 Sometimes, when you make code changes some errors may occur which are not caught by asserts or any
 other type of validation. These errors may lead to exceptions on the processor which will cause the
@@ -2903,14 +2903,39 @@ system to crash.
 
 In case such an event occurs \projectname will log the interrupt stack and the processor registers
 when the exception took place. The only way to see where the operation took place is to disassemble
-the instructions near the RIP which caused the exception. We recommend using IDA \cite{ida} for this.
+the instructions near the RIP which caused the exception. We recommend using WinDbg or IDA \cite{ida} for this.
+
+The choice of which tool to use depends on how you have built HAL9000. More specifically, you need to
+know what \textbf{platform toolset} was used to build HAL9000. \fullref{sect:CheckPlatformToolset} 
+describes how to check your platform toolset. 
+You can use WinDbg regardless of which platform toolset was used for build. However, at the time of 
+writing this, the newest free version of IDA cannot open the symbols for HAL9000 if it was built with platform toolset
+version \textbf{v142}. If you have built HAL9000 with toolset version \textbf{v142} and for whatever 
+reason you would like to use IDA, you will have to downgrade to toolset version \textbf{v140} 
+(check \fullref{sect:SetPlatformToolset}).
+
+ \begin{tcolorbox}[width=\textwidth,colback={yellow},title={WinDbg},colbacktitle=yellow,coltitle=black]    
+	WinDbg is a multipurpose debugger distributed by Microsoft. It has two versions, \textbf{WinDbg} and \textbf{WinDbg Preview}.
+	Both can be downloaded from \url{https://docs.microsoft.com/ro-ro/windows-hardware/drivers/debugger/debugger-download-tools}.
+	We recommend downloading WinDbg Preview because it takes less time, but you can also download WinDbg.
+	The commands that they accept are the same.
+
+	The advantage of WinDbg over IDA is that given an address, it will show you both the disassembled assembly code
+	and the C source code at that address. IDA will only show you the disassembled assembly code.
+ \end{tcolorbox}    
+
+ \begin{tcolorbox}[width=\textwidth,colback={green},title={IDA},colbacktitle=green,coltitle=black]    
+	IDA (or Interactive Disassembler) is a disassembler for computer software which generates 
+	assembly language source code from machine-executable code.
+	IDA can be downloaded from \url{https://www.hex-rays.com/products/ida/support/download_freeware.shtml}
+ \end{tcolorbox}    
 
 Most of the time, it is easy to pinpoint the function and the exact place where the exception took
 place once we look at the disassembled code. Either because there is a log function close to the
 faulting RIP which also logs the file and line or we can easily determine the function to which the
 instruction belongs to.
 
-We will now look into an example on how to diagnose a \#PF using the IDA dissasembler.
+We will now look into an example on how to diagnose a \#PF using WinDbg or IDA.
 
 We made some changes to the code and now \projectname crashes due to an un-handled page fault. The
 last lines of the log file looks like this:
@@ -2997,16 +3022,75 @@ We can clearly see the value of the faulting RIP as being 0xFFFF800001032CFB and
 NULL pointer dereference, i.e. a field at offset 0x20 from a structure is accessed through a NULL
 pointer.
 
-We can now open the binary file with IDA and dissasemble the code.
+We can now open the binary file with WinDbg or IDA.
 
-\textbf{NOTE: the .pdb file should be in the same folder as the binary file when you open it with
- IDA. Because of this, our recommendation is to load the \file{HAL9000.bin} file from the bin folder.}
+\textbf{NOTE: the .pdb file should be in the same folder as the binary file when you open it. 
+Because of this, our recommendation is to load the \file{HAL9000.bin} file from the bin folder.}
 
 \textbf{NOTE: Be careful not have re-compiled \projectname since the time of the crash.
 If you have done so, the disassembled instructions will not match those which generated the crash.}
 
-Once we opened the binary in IDA we can use the Jump to Address (G keyboard shortcut) to jump to the 
-faulting instruction: 0xFFFF800001032CFB. In our case we see \fullref{fig:IdaFault}.
+\textbf{NOTE: You may notice that we are using different addresses in the WinDbg and IDA tutorial.
+The disassembled code may also differ. This is because the code was recompiled before creating the WinDbg tutorials, 
+but the bug that we are trying to find is the same.}
+
+\begin{tcolorbox}[width=\textwidth,colback={yellow},title={WinDbg},colbacktitle=yellow,coltitle=black]    
+	Open WinDbg / WinDbg Preview (use windows search to find them).
+
+	Click \textbf{File} \textrightarrow \textbf{Open dump file}. Select "All files" in the Open dialog
+	and open the file \path{HAL9000\bin\x64\Debug\HAL9000\HAL9000.bin}, as shown in \fullref{fig:WinDbgOpenHal}.
+
+	\textbf{NOTE: Be sure to close WinDbg before trying to rebuild the project. 
+	Otherwise you will get a build error.}
+\end{tcolorbox}    
+\begin{figure}[]
+	\centering
+	\includegraphics[scale=0.5]{WinDbgOpenHal.png}
+	\caption{Open HAL9000.bin in WinDbg}
+	\label{fig:WinDbgOpenHal}
+\end{figure}
+
+\begin{tcolorbox}[width=\textwidth,colback={green},title={IDA},colbacktitle=green,coltitle=black]    
+	Open \textbf{idaq64.exe} from the folder where you have downloaded/installed IDA.
+
+	Choose to open \textbf{New} file, and choose the file located at \path{HAL9000\bin\x64\Debug\HAL9000\HAL9000.bin}
+
+	Do not change any load options and click Ok.
+\end{tcolorbox}  
+
+Once we opened the binary, we have to examine the faulting instruction.
+
+\begin{tcolorbox}[width=\textwidth,colback={yellow},title={WinDbg},colbacktitle=yellow,coltitle=black]    
+	In WinDbg we can use the \textbf{ln} command to jump to the source code line
+	where the faulting instruction was executed.
+	To do this, type in \textbf{ln <address>} and hit Enter. 
+	Then, click on the path in blue to open the source code where the exception occured.
+
+	The process is shown in \fullref{fig:WinDbgLn}.
+
+	To view the assembly code, click \textbf{View} \textrightarrow \textbf{Disassembly}, 
+	type the address in the \textbf{Address:} field and hit Enter.
+
+	The process is shown in \fullref{fig:WinDbgDisassembly}.
+\end{tcolorbox}  
+
+\begin{figure}[]
+	\centering
+	\includegraphics[scale=0.45]{WinDbgLn.png}
+	\caption{WinDbg: ln command}
+	\label{fig:WinDbgLn}
+\end{figure}
+\begin{figure}[]
+	\centering
+	\includegraphics[scale=0.7]{WinDbgDisassembly.png}
+	\caption{WinDbg: Disassembly}
+	\label{fig:WinDbgDisassembly}
+\end{figure}
+
+\begin{tcolorbox}[width=\textwidth,colback={green},title={IDA},colbacktitle=green,coltitle=black]    
+	In IDA we can use the Jump to Address (G keyboard shortcut) to jump to the 
+	faulting instruction: 0xFFFF800001032CFB. In our case we see \fullref{fig:IdaFault}.
+\end{tcolorbox}  
 
 \begin{figure}
 	\centering
@@ -3025,7 +3109,8 @@ faulting instruction: 0xFFFF800001032CFB. In our case we see \fullref{fig:IdaFau
 As previously stated, RAX+0x20 is dereferenced and because RAX is NULL the faulting address is 0x20.
 The function in which this takes place is \func{ProcessGetName}. If we press CTRL + X once the
 function name is selected we can see that this function is only called from 3 other functions -
-illustrated in \fullref{fig:IdaRefs}.
+illustrated in \fullref{fig:IdaRefs}. You can also see where a function is reference in Visual Studio
+by placing the cursor on the name of the function and pressing \textbf{Shift + F12}.
 
 From these 3 functions we can deduce that the one which actually called \func{ProcessGetName} is
 \func{ProcessThreadInsertIntoList} because the last thing logged before the exception is from
@@ -3039,8 +3124,8 @@ In case this is not enough information we can also look at the stack dump from t
 determine the call stack hierarchy. Addresses which begin with 0xFFFF85 correspond to dynamically
 allocated memory, so we only have to look at addresses which are of the form 0xFFFF8000010 These
 addresses belong either to code, or to data segments. This can be determined with 100\% precision
-by looking at the PE, but because there are very few such addresses on the stack we can easily use
-Jump to Address (G) to see the position of each address.
+by looking at the PE, but because there are very few such addresses on the stack we can easily 
+examine the position of each address using methods presented for WinDbg and IDA (ln command and Jump To Address (G)).
 
 If we go to  0xFFFF80000103330F we will see that we're in \func{ProcessInsertThreadInList}, if we
 want to go further up the hierarchy we look for the next potential code address candidate. Once we
@@ -3447,6 +3532,77 @@ or files whose names follow a certain pattern.
 	\item By pressing "CTRL + F" you can perform a text search the current file.
 
 \end{itemize}
+
+\subsection{Check the platform toolset}
+\label{sect:CheckPlatformToolset}
+
+To check the platform toolset with which HAL9000 was built, do the following steps:
+\begin{enumerate}
+	\item Open HAL9000 project properties, as shown in \fullref{fig:HalProperties}
+	\item Navigate to \textbf{Configuration Properties} \textrightarrow \textbf{General} \textrightarrow \textbf{Platform Toolset}
+		  and read the platform toolset version, as shown in \fullref{fig:CheckPlatformToolset}
+\end{enumerate}
+\begin{figure}[]
+	\centering
+	\includegraphics[scale=0.7]{HalProperties.png}
+	\caption{HAL9000 properties}
+	\label{fig:HalProperties}
+\end{figure}
+\begin{figure}[]
+	\centering
+	\includegraphics[scale=0.7]{CheckPlatformToolset.png}
+	\caption{Platform Toolset}
+	\label{fig:CheckPlatformToolset}
+\end{figure}
+
+\subsection{Set the platform toolset}
+\label{sect:SetPlatformToolset}
+
+To set the platform toolset for all projects in the solution, do the following steps:
+\begin{enumerate}
+	\item Select all the projects using \textbf{Ctrl + click} and go to \textbf{Properties} as 
+		  shown in \fullref{fig:AllProperties}
+	\item Navigate to \textbf{Configuration Properties} \textrightarrow \textbf{General} \textrightarrow \textbf{Platform Toolset}
+		  and select the desired platform toolset, then click Apply and Ok, as shown in \fullref{fig:SetPlatformToolset}.
+		  If you cannot find the desired platform toolset in the dropdown list, you have to install it
+		  (see \fullref{sect:InstallPlatformToolset}).
+\end{enumerate}
+\begin{figure}[]
+	\centering
+	\includegraphics[scale=0.7]{AllProperties.png}
+	\caption{Properties}
+	\label{fig:AllProperties}
+\end{figure}
+\begin{figure}[]
+	\centering
+	\includegraphics[scale=0.7]{SetPlatformToolset.png}
+	\caption{Set the Platform Toolset}
+	\label{fig:SetPlatformToolset}
+\end{figure}
+
+\subsection{Install the desired platform toolset}
+\label{sect:InstallPlatformToolset}
+
+To install a platform toolset version, do the following steps:
+\begin{enumerate}
+	\item In Visual Studio, got to \textbf{Tools} \textrightarrow \textbf{Get Tools and Features...}, 
+		  as shown in \fullref{fig:InstallPlatformToolset1}.
+	\item The Visual Studio Installer should have opened. Click on \textbf{Individual components}, 
+		  enter the version of platform toolset that you want to install, check the checkbox and click \textbf{Modify},
+		  as shown in \fullref{fig:InstallPlatformToolset2}.
+\end{enumerate}
+\begin{figure}[]
+	\centering
+	\includegraphics[scale=0.7]{InstallPlatformToolset1.png}
+	\caption{Get Tools and Features...}
+	\label{fig:InstallPlatformToolset1}
+\end{figure}
+\begin{figure}[]
+	\centering
+	\includegraphics[scale=0.45]{InstallPlatformToolset2.png}
+	\caption{Install Platform Toolset}
+	\label{fig:InstallPlatformToolset2}
+\end{figure}
 
 \section{Hg}
 
