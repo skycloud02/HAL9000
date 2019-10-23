@@ -58,7 +58,7 @@ const THREAD_TEST THREADS_TEST[] =
     // Spawns multiple threads (default 16) to wait for the same relative once timer with a period of 50 ms.
     // The test validates that each thread is woken up properly after the timer expires.
     {   "TestThreadTimerMultipleThreads", TestThreadTimerMultiple,
-        TestThreadTimerPrepare, (PVOID)FALSE, NULL, NULL,
+        TestThreadTimerPrepare, (PVOID)FALSE, NULL, TestThreadTimerMultipleThreadsPostFinish,
         ThreadPriorityDefault, FALSE, FALSE, FALSE},
 
     // Spawns multiple threads (default 16) to each wait for a different relative periodic timer with a different
@@ -78,7 +78,7 @@ const THREAD_TEST THREADS_TEST[] =
     // T[0] woke up at 11750 us system time
     // ...
     {   "TestThreadTimerMultipleTimers", TestThreadTimerMultiple,
-        TestThreadTimerPrepare, (PVOID)TRUE, NULL, TestThreadTimerPostFinish,
+        TestThreadTimerPrepare, (PVOID)TRUE, NULL, TestThreadTimerMultipleTimersPostFinish,
         ThreadPriorityDefault, FALSE, FALSE, TRUE},
 
     // Tests to see if a relative once timer works properly for a 50ms timeout period
