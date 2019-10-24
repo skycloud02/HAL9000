@@ -102,6 +102,9 @@
     <ClCompile Include="src\cl_heap.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\checkin_queue.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\va_list.h">
@@ -198,6 +201,9 @@
       <Filter>Header Files\inc</Filter>
     </ClInclude>
     <ClInclude Include="inc\cl_heap.h">
+      <Filter>Header Files\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\checkin_queue.h">
       <Filter>Header Files\inc</Filter>
     </ClInclude>
   </ItemGroup>
