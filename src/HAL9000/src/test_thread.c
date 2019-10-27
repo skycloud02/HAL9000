@@ -100,12 +100,12 @@ const THREAD_TEST THREADS_TEST[] =
     // ThreadPriorityLowest + no of threads - 1) and checks to see if the threads waiting for an EX_EVENT are woken
     // up according to their priorities (i.e. the higher priorities threads should be woken up first)
     {   "TestThreadPriorityWakeup", TestThreadPriorityWakeup,
-        TestThreadPrepareWakeupEvent, NULL, TestThreadPostCreateWakeup, NULL,
+        TestThreadPrepareWakeupEvent, NULL, TestThreadPostCreateWakeup, TestThreadPostFinishWakeup,
         ThreadPriorityLowest, TRUE, FALSE, FALSE},
 
     // Same as "TestThreadPriorityWakeup" except MUTEXes are used instead of EX_EVENTs
     {   "TestThreadPriorityMutex", TestThreadPriorityMutex,
-        TestPrepareMutex, (PVOID)TRUE, TestThreadPostCreateMutex, NULL,
+        TestPrepareMutex, (PVOID)TRUE, TestThreadPostCreateMutex, TestThreadPostFinishMutex,
         ThreadPriorityLowest, TRUE, FALSE, FALSE},
 
     // Spawns a highest priority thread and validates that the thread is not de-scheduled even if it tries to yield

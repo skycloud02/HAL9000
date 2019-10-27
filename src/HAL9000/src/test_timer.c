@@ -235,19 +235,19 @@ void
 
 void
 (__cdecl TestThreadTimerMultipleThreadsPostFinish)(
-	IN              PVOID               Context,
-	IN              DWORD               NumberOfThreads
-	)
+    IN              PVOID               Context,
+    IN              DWORD               NumberOfThreads
+    )
 {
-	PTIMER_TEST_MULTIPLE_CTX pContext;
+    PTIMER_TEST_MULTIPLE_CTX pContext;
 
-	UNREFERENCED_PARAMETER(NumberOfThreads);
+    UNREFERENCED_PARAMETER(NumberOfThreads);
 
-	pContext = (PTIMER_TEST_MULTIPLE_CTX)Context;
+    pContext = (PTIMER_TEST_MULTIPLE_CTX)Context;
 
-	ASSERT(pContext != NULL);
+    ASSERT(pContext != NULL);
 
-	ExTimerUninit(&pContext->Same.Timer);
+    ExTimerUninit(&pContext->Same.Timer);
 }
 
 

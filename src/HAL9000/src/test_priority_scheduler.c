@@ -4,6 +4,8 @@
 #include "ex_event.h"
 #include "mutex.h"
 #include "thread_internal.h"
+#include "checkin_queue.h"
+#include "pit.h"
 
 #define PRIORITY_SCHEDULER_NO_OF_ITERATIONS             16
 
@@ -23,6 +25,20 @@ typedef struct _TEST_PRIORITY_EXEC_CTX
 } TEST_PRIORITY_EXEC_CTX, *PTEST_PRIORITY_EXEC_CTX;
 #pragma warning(pop)
 
+typedef struct _TEST_PRIORITY_WAKEUP_CTX
+{
+    CHECKIN_QUEUE           SynchronizationContext;
+
+    EX_EVENT                WakeupEvent;
+} TEST_PRIORITY_WAKEUP_CTX, *PTEST_PRIORITY_WAKEUP_CTX;
+
+typedef struct _TEST_PRIORITY_MUTEX_CTX
+{
+    CHECKIN_QUEUE           SynchronizationContext;
+
+    MUTEX                   Mutex;
+} TEST_PRIORITY_MUTEX_CTX, *PTEST_PRIORITY_MUTEX_CTX;
+
 void
 (__cdecl TestPrepareMutex)(
     OUT_OPT_PTR     PVOID*              Context,
@@ -32,16 +48,29 @@ void
 {
     PMUTEX pMutex;
     BOOLEAN acquireMutex;
+    PTEST_PRIORITY_MUTEX_CTX pWakeupCtx;
 
-    ASSERT( NULL != Context );
+    ASSERT(NULL != Context);
+    ASSERT(NumberOfThreads > 0);
 
-    UNREFERENCED_PARAMETER(NumberOfThreads);
+    pWakeupCtx = (PTEST_PRIORITY_MUTEX_CTX)Context;
+
+    pWakeupCtx = ExAllocatePoolWithTag(PoolAllocateZeroMemory | PoolAllocatePanicIfFail,
+        sizeof(TEST_PRIORITY_MUTEX_CTX),
+        HEAP_TEST_TAG, 0);
+
+    DWORD bufferSize = CheckinQueuePreInit(&pWakeupCtx->SynchronizationContext, NumberOfThreads);
+
+    PBYTE buffer = (PBYTE)ExAllocatePoolWithTag(PoolAllocateZeroMemory | PoolAllocatePanicIfFail,
+        bufferSize, HEAP_TEST_TAG, 0);
+
+    CheckinQueueInit(&pWakeupCtx->SynchronizationContext, buffer);
+
+    pMutex = &pWakeupCtx->Mutex;
 
     // warning C4305: 'type cast': truncation from 'const PVOID' to 'BOOLEAN'
 #pragma warning(suppress:4305)
     acquireMutex = (BOOLEAN) PrepareContext;
-
-    pMutex = ExAllocatePoolWithTag(PoolAllocateZeroMemory | PoolAllocatePanicIfFail, sizeof(MUTEX), HEAP_TEST_TAG, 0 );
 
     MutexInit(pMutex, FALSE);
 
@@ -50,7 +79,7 @@ void
         MutexAcquire(pMutex);
     }
 
-    *Context = pMutex;
+    *Context = pWakeupCtx;
 }
 
 void
@@ -58,10 +87,21 @@ void
     IN              PVOID               Context
     )
 {
+    PTEST_PRIORITY_MUTEX_CTX pContext;
     PMUTEX pMutex;
 
-    pMutex = (PMUTEX)Context;
+    pContext = (PTEST_PRIORITY_MUTEX_CTX)Context;
+    ASSERT(pContext != NULL);
+    ASSERT(pContext->SynchronizationContext.Array != NULL);
+
+    pMutex = (PMUTEX)&pContext->Mutex;
     ASSERT(pMutex != NULL);
+
+    // wait on all threads to finish creation and mark presence before blocking on the mutex.
+    CheckinQueueWaitOn(&pContext->SynchronizationContext, TRUE, 0);
+
+    // little sleep to make sure even the last thread got blocked on the mutex.
+    PitSleep(10);
 
     MutexRelease(pMutex);
 }
@@ -71,10 +111,18 @@ STATUS
     IN_OPT      PVOID       Context
     )
 {
+    PTEST_PRIORITY_MUTEX_CTX pContext;
     PMUTEX pMutex;
 
-    pMutex = (PMUTEX)Context;
+    pContext = (PTEST_PRIORITY_MUTEX_CTX)Context;
+    ASSERT(pContext != NULL);
+    ASSERT(pContext->SynchronizationContext.Array != NULL);
+
+    pMutex = (PMUTEX)&pContext->Mutex;
     ASSERT(pMutex != NULL);
+
+    // mark my presence
+    CheckinQueueMarkPresence(&pContext->SynchronizationContext);
 
     MutexAcquire(pMutex);
 
@@ -87,6 +135,30 @@ STATUS
 }
 
 void
+(__cdecl TestThreadPostFinishMutex)(
+    IN              PVOID               Context,
+    IN              DWORD               NumberOfThreads
+    )
+{
+    PTEST_PRIORITY_MUTEX_CTX pContext;
+
+    ASSERT(NULL != Context);
+    pContext = (PTEST_PRIORITY_MUTEX_CTX)Context;
+    ASSERT(pContext->SynchronizationContext.Array != NULL);
+
+    UNREFERENCED_PARAMETER(NumberOfThreads);
+
+    ExFreePoolWithTag((PVOID)pContext->SynchronizationContext.Array, HEAP_TEST_TAG);
+
+    CheckinQueueUninit(&pContext->SynchronizationContext);
+
+    // This Context is freed outside in TestThreadFunctionality!!!!
+    //ExFreePoolWithTag((PVOID)pContext, HEAP_TEST_TAG);
+
+    pContext = NULL;
+}
+
+void
 (__cdecl TestThreadPrepareWakeupEvent)(
     OUT_OPT_PTR     PVOID*              Context,
     IN              DWORD               NumberOfThreads,
@@ -94,23 +166,31 @@ void
     )
 {
     STATUS status;
-    PEX_EVENT pWakeupEvent;
+    PTEST_PRIORITY_WAKEUP_CTX pWakeupCtx;
 
     ASSERT( NULL != Context );
     ASSERT(PrepareContext == NULL);
+    ASSERT(NumberOfThreads > 0);
 
-    UNREFERENCED_PARAMETER(NumberOfThreads);
+    pWakeupCtx = (PTEST_PRIORITY_WAKEUP_CTX)Context;
 
-    pWakeupEvent = ExAllocatePoolWithTag(PoolAllocateZeroMemory | PoolAllocatePanicIfFail,
-                                         sizeof(EX_EVENT),
-                                         HEAP_TEST_TAG, 0 );
+    pWakeupCtx = ExAllocatePoolWithTag(PoolAllocateZeroMemory | PoolAllocatePanicIfFail,
+        sizeof(TEST_PRIORITY_WAKEUP_CTX),
+        HEAP_TEST_TAG, 0);
 
-    status = ExEventInit(pWakeupEvent,
+    DWORD bufferSize = CheckinQueuePreInit(&pWakeupCtx->SynchronizationContext, NumberOfThreads);
+
+    PBYTE buffer = (PBYTE)ExAllocatePoolWithTag(PoolAllocateZeroMemory | PoolAllocatePanicIfFail,
+        bufferSize, HEAP_TEST_TAG, 0);
+
+    CheckinQueueInit(&pWakeupCtx->SynchronizationContext, buffer);
+
+    status = ExEventInit(&pWakeupCtx->WakeupEvent,
                          ExEventTypeSynchronization,
                          FALSE);
     ASSERT(SUCCEEDED(status));
 
-    *Context = pWakeupEvent;
+    *Context = pWakeupCtx;
 }
 
 void
@@ -118,10 +198,21 @@ void
     IN              PVOID               Context
     )
 {
+    PTEST_PRIORITY_WAKEUP_CTX pContext;
     PEX_EVENT pWakeupEvent;
 
-    pWakeupEvent = (PEX_EVENT) Context;
+    pContext = (PTEST_PRIORITY_WAKEUP_CTX)Context;
+    ASSERT(pContext != NULL);
+    ASSERT(pContext->SynchronizationContext.Array != NULL);
+
+    pWakeupEvent = (PEX_EVENT)&pContext->WakeupEvent;
     ASSERT(pWakeupEvent != NULL);
+
+    // wait on all threads to finish creation and mark presence before blocking on the event.
+    CheckinQueueWaitOn(&pContext->SynchronizationContext, TRUE, 0);
+
+    // little sleep to make sure even the last thread got blocked on the event.
+    PitSleep(10);
 
     ExEventSignal(pWakeupEvent);
 }
@@ -131,10 +222,18 @@ STATUS
     IN_OPT      PVOID       Context
     )
 {
+    PTEST_PRIORITY_WAKEUP_CTX pContext;
     PEX_EVENT pWakeupEvent;
 
-    pWakeupEvent = (PEX_EVENT) Context;
+    pContext = (PTEST_PRIORITY_WAKEUP_CTX)Context;
+    ASSERT(pContext != NULL);
+    ASSERT(pContext->SynchronizationContext.Array != NULL);
+
+    pWakeupEvent = (PEX_EVENT)&pContext->WakeupEvent;
     ASSERT(pWakeupEvent != NULL);
+
+    // mark my presence
+    CheckinQueueMarkPresence(&pContext->SynchronizationContext);
 
     ExEventWaitForSignal(pWakeupEvent);
 
@@ -144,6 +243,30 @@ STATUS
     ExEventSignal(pWakeupEvent);
 
     return STATUS_SUCCESS;
+}
+
+void
+(__cdecl TestThreadPostFinishWakeup)(
+    IN              PVOID               Context,
+    IN              DWORD               NumberOfThreads
+    )
+{
+    PTEST_PRIORITY_WAKEUP_CTX pContext;
+
+    ASSERT(NULL != Context);
+    pContext = (PTEST_PRIORITY_WAKEUP_CTX)Context;
+    ASSERT(pContext->SynchronizationContext.Array != NULL);
+
+    UNREFERENCED_PARAMETER(NumberOfThreads);
+
+    ExFreePoolWithTag((PVOID)pContext->SynchronizationContext.Array, HEAP_TEST_TAG);
+
+    CheckinQueueUninit(&pContext->SynchronizationContext);
+
+    // This Context is freed outside in TestThreadFunctionality!!!!
+    //ExFreePoolWithTag((PVOID)pContext, HEAP_TEST_TAG);
+
+    pContext = NULL;
 }
 
 STATUS
