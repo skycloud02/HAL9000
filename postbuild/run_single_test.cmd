@@ -9,7 +9,7 @@ call paths.cmd
 
 rem execute_tests.pl E:\WORKSPACE\PROJECTS\VS2015\HAL9000\TESTS\threads e:\workspace\Projects\MiniHV\logs\w81x64.log "c:\Program Files (x86)\VMware\VMware VIX" "E:\workspace\VMware Virtual Machines\Windows 8.1 x64\Windows 8.1 x64.vmx" E:\PXE\Tests.module /run
 
-set TESTS_BASE_FOLDER=%CD%\..\..\tests\%1
+set TESTS_BASE_FOLDER=%CD%\..\tests\%1
 set PREFIX=__EMPTY__
 set SUFFIX=__EMPTY__
 
