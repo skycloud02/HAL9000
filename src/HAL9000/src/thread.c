@@ -553,10 +553,6 @@ ThreadExit(
 
     CpuIntrDisable();
 
-    LockAcquire(&m_threadSystemData.AllThreadsLock, &oldState);
-    RemoveEntryList(&pThread->AllList);
-    LockRelease(&m_threadSystemData.AllThreadsLock, oldState);
-
     if (LockIsOwner(&pThread->BlockLock))
     {
         LockRelease(&pThread->BlockLock, INTR_OFF);
@@ -1185,10 +1181,15 @@ _ThreadDestroy(
     IN_OPT  PVOID                   Context
     )
 {
+    INTR_STATE oldState;
     PTHREAD pThread = (PTHREAD) Object;
 
     ASSERT(NULL != pThread);
     ASSERT(NULL == Context);
+
+    LockAcquire(&m_threadSystemData.AllThreadsLock, &oldState);
+    RemoveEntryList(&pThread->AllList);
+    LockRelease(&m_threadSystemData.AllThreadsLock, oldState);
 
     // This must be done before removing the thread from the process list, else
     // this may be the last thread and the process VAS will be freed by the time
