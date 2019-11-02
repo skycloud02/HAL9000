@@ -1174,7 +1174,7 @@ We will summarize the most important fields:
 	\item PID Id
 
 	Unique identifier, valid values range between 1 and 4095. These can be recycled, so while
-process A has ID 7 after it dies another process may take its former ID value. The reason why PIDs
+process A has ID 7 after it dies, another process may take its former ID value. The reason why PIDs
 are implemented this way is because of the limitations of PCIDs.
 
 	\item char* ProcessName
@@ -1187,7 +1187,7 @@ are implemented this way is because of the limitations of PCIDs.
 
 	\item DWORD NumberOfArguments
 
-	The number of arguments - including the process name or put differently: the number of space
+	The number of arguments - including the process name, or put differently: the number of space
 separated strings in FullCommandLine.
 
 	\item LIST\_ENTRY ThreadList
@@ -1201,9 +1201,9 @@ separated strings in FullCommandLine.
 
 \subsection{Process functions}
 
-The functions implemented by process.c are exposed in two separate files: \textit{process.h}
-containing the functions which may be used by any components (drivers or exposed as system calls)
-and \textit{process\_internal.h} which should only be used by the components in \projectname which
+The functions implemented by process.c are exposed in two separate files: \textit{process.h},
+containing the functions which may be used by any components (drivers or exposed as system calls),
+and \textit{process\_internal.h}, which should only be used by the components in \projectname which
 work closely with the process module.
 
 \begin{lstlisting}[caption={Process Public Interface},label={lst:ProcPublic}]
@@ -1426,12 +1426,12 @@ ProcessActivatePagingTables(
 \subsection{Program Startup}
 \label{sect:ProgramStart}
 
-In \projectname the UsermodeLibrary library defines the entry point of every application:
-\func{\_\_start} in \file{um\_lib.c}. As you can see from the code its job is to perform some basic
+In \projectnamez the UsermodeLibrary library defines the entry point of every application:
+\func{\_\_start} in \file{um\_lib.c}. As you can see from the code, its job is to perform some basic
 initialization and make sure that the \func{SyscallThreadExit} call is made after the actual
 application finishes.
 
-All user applications in \projectname must implement the \func{\_\_main} function which receives the
+All user applications in \projectname must implement the \func{\_\_main} function, which receives the
 standard parameters for any C main thread: argc and argv.
 
 The kernel must put the arguments for the initial function on the stack before it allows the user
@@ -1460,14 +1460,14 @@ we will not check this in our tests.
 The stack is illustrated in \fullref{fig:UserStackInit}. In this example the stack pointer would be
 initialized to 0x13'FFFF'FF78.
 
-These actions should be taken in \func{\_ThreadSetupMainThreadUserStack}, this function is called
+These actions should be taken in \func{\_ThreadSetupMainThreadUserStack}. This function is called
 when the main (first) thread of a process is created. However, if we think a minute, we'll see that
 we have a problem: the OS has access to its virtual space and to the virtual space of the currently
 running process, i.e. we cannot directly access the stack of the newly created process.
 
 To overcome this problem we can temporarily map the physical memory described by the user virtual
 pages in kernel space. For this we can use \func{MmuGetSystemVirtualAddressForUserBuffer}, as a
-result we will obtain a kernel virtual mapping which we can then access. Once the stack is setup
+result we will obtain a kernel virtual mapping which we can then access. Once the stack is set up
 we can free this virtual address using \func{MmuFreeSystemVirtualAddressForUserBuffer}.
 
 \begin{figure}
