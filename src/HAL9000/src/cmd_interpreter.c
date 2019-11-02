@@ -85,6 +85,7 @@ static const COMMAND_DEFINITION COMMANDS[] =
     { "rdmsr", "0x$INDEX\n\t$INDEX is the MSR to read", CmdRdmsr, 1, 1},
     { "wrmsr", "0x$INDEX 0x$VALUE\n\t$INDEX is the MSR to write\n\t$VALUE is the value to place in the MSR", CmdWrmsr, 2, 2},
     { "chkad", "Check if paging accessed/dirty bits mechanism is working", CmdCheckAd, 0, 0},
+    { "spawn", "$CPU_BOUND $IO_BOUND\n\tNumber of CPU bound threads to spawn\n\tNumber of IO bound threads to spawn", CmdSpawnThreads, 2, 2},
     { "cpuid", "[0x$INDEX] [0x$SUBINDEX]\n\tIf index is not specified lists all available CPUID values"
                 "\n\tIf subindex is specified displays subleaf information", CmdCpuid, 0, 2},
     { "ipi", "$MODE [$DEST] {$WAIT]\n\tSee SMP_IPI_SEND_MODE for destination mode\n\t$DEST - processor IDs"
