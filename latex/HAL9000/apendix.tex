@@ -1965,19 +1965,19 @@ what the difference is between these memory types you really should review a bas
 course and come back after.
 
 To put it very shortly, the physical memory (as the name suggests) is physical memory which either
-belongs to the RAM memories in the system or to other peripheral devices connected to the system
+belongs to the RAM memories in the system, or to other peripheral devices connected to the system
 (network cards, hard-disk controllers, USB controllers and so on).
 
 However, \projectname and other operating systems do not work directly with physical memory, these
 benefit from a mechanism implemented on the CPUs to offer a virtual address space (VAS) to software
 running on the system.
 
-Once the OS has setup the paging structures each time the CPU performs a memory access the address
+Once the OS has setup the paging structures, each time the CPU performs a memory access, the address
 used to access this memory is a virtual address (VA). The paging structures will tell the CPU
-where the VA points to in physical memory and what are the access rights for which the memory can
+where the VA points to in physical memory, and what are the access rights for which the memory can
 be accessed. If the VA is not mapped to a physical address (PA) or if the access rights are
 insufficient (i.e. a user-mode application wants to access a kernel-mode address or a kernel-mode
-application wants to write a read-only page) a page fault (\#PF) occurs.
+application wants to write a read-only page), a page fault (\#PF) occurs.
 
 For more information on how \projectname handles \#PFs see \fullref{sect:PfHandling}, for more
 information on how paging works you can read \cite{intelSys} Chapter 4 - Paging.
@@ -1991,17 +1991,17 @@ means determining upon system initialization what memory is available, marking m
 when used and releasing it when it is no longer needed.
 
 All this functionality is exposed in \file{pmm.h}. Using the INT15H E820H memory map retrieved on
-system initialization the extents of physical memory is determined. This memory map is actually an
-array of ranges of memory found in the system - some of it being available while other being already
+system initialization, the extents of physical memory is determined. This memory map is actually an
+array of ranges of memory found in the system - some of it being available, while other being already
 reserved by the firmware or hardware devices.
 
 The PMM tracks the availability of physical frames in the \var{m\_pmmData.AllocationBitmap} bitmap.
 The size of the bitmap depends on the highest physical address available. Physical memory may 
-contain gaps so we cannot use the size of available memory to determine the size of the bitmap.
-Upon initialization all physical memory from 0 to the highest available is marked as reserved after
-which the INT15H E820H memory map is traversed and as available memory is found it is 'released'.
+contain gaps, so we cannot use the size of available memory to determine the size of the bitmap.
+Upon initialization, all physical memory from 0 to the highest available is marked as reserved, after
+which the INT15H E820H memory map is traversed, and as available memory is found, it is 'released'.
 
-Once the PMM finishes its initialization the OS can request memory using \func{PmmReserveMemory} or
+Once the PMM finishes its initialization, the OS can request memory using \func{PmmReserveMemory} or
 \func{PmmReserveMemoryEx} and free it using \func{PmmReleaseMemory}. You probably will \textbf{NOT}
 have to call these functions directly in any of your projects, we will see in the following sections
 how these functions are used.
@@ -2016,8 +2016,8 @@ working with the CPU's paging structures.
 Each VAS is managed through a VMM\_RESERVATION\_SPACE structure. Thus, each process has its own
 reservation space - pointed to by the \var{VaSpace} member of the PROCESS structure.
 
-When memory is allocated through the \func{VmmAllocRegion} or \func{VmmAllocRegionEx} functions a
-reservation for this memory is created in the VAS received as parameter or, if NULL, in the VAS of
+When memory is allocated through the \func{VmmAllocRegion} or \func{VmmAllocRegionEx} functions, a
+reservation for this memory is created in the VAS, received as parameter or, if NULL, in the VAS of
 the current process.
 
 Each reservation is described by a VMM\_RESERVATION structure. This specifies the VA range reserved
@@ -2039,7 +2039,7 @@ lazy - see \fullref{sect:LazyMapping} for details. However, if you want to make 
 commit a VA range it is mapped you can specify the \macro{VMM\_ALLOC\_TYPE\_NOT\_LAZY} flag
 to the allocate function.
 
-To release previously allocated memory call \func{VmmFreeRegion} or \func{VmmFreeRegionEx}. De-commiting
+To release previously allocated memory, call \func{VmmFreeRegion} or \func{VmmFreeRegionEx}. De-commiting
 memory can be done at the page level granularity, however releasing memory (i.e. freeing the 
 reservation completely) is an all or nothing operation: either you don't release the memory, either
 you release it all.
@@ -2047,7 +2047,7 @@ you release it all.
 NOTE: The VMM also provides functions for mapping and un-mapping memory, however you should not use
 these and use the MMU provided functions instead, see \fullref{sect:MMU}.
 
-The functions which effectively work with the CPU paging structures to setup VA to PA translation
+The functions, which effectively work with the CPU paging structures to setup VA to PA translation
 and to remove them are \func{VmmMapMemoryInternal} and \func{VmmUnmapMemoryEx}.
 
 \subsubsection{Lazy Mapping}
@@ -2058,9 +2058,9 @@ In eager mapping, once the virtual address is allocated it's also mapped to a ph
 contrast, when using lazy mapping, the VA may be allocated, but it will not be mapped to a physical
 address until it is actually needed, i.e. on first access to that region.
 
-Because the lazy mapping approach is much faster than the eager one it is commonly used in modern
+Because the lazy mapping approach is much faster than the eager one, it is commonly used in modern
 operating systems. Also, it is more practical not to reserve physical frames for virtual memory
-allocated because most of the time most of the memory space will not be used. For example
+allocated, because most of the time most of the memory space will not be used. For example
 \projectname allocates 5 GB of virtual memory for each user-mode process for their VAS management
 structures, but most processes will not use more than a few KB - some even less.
 
@@ -2069,17 +2069,17 @@ addresses, as an example we may want to allocate a VA range of 1TB - however mos
 the OS will run certainly do not have 1TB of physical space - thus making eager mapping impossible
 without supporting swap space.
 
-In case lazy mapping is used and the 1TB range is allocated the physical frames are allocated only
-to the VAs actually accessed on a per-page granularity, i.e. if from the 1TB range we access only
-the first 100 bytes and the last 5 bytes we'll only have allocated 2 physical frames of memory.
+In case lazy mapping is used, and the 1TB range is allocated, the physical frames are allocated only
+to the VAs actually accessed on a per-page granularity, i.e. if from the 1TB range, we access only
+the first 100 bytes and the last 5 bytes, we'll only have allocated 2 physical frames of memory.
 
-\projectname's default behavior is to lazy map virtual addresses, however if you need to make sure
-that once you allocated a VA range it is also backed by physical memory you can set the
+\projectname's default behavior is to lazy map virtual addresses, however, if you need to make sure
+that once you allocated a VA range, it is also backed by physical memory, you can set the
 \macro{VMM\_ALLOC\_TYPE\_NOT\_LAZY} flag when allocating virtual memory.
 
 Okay, so how does the OS know that a virtual address is accessed for the first time and it needs to
-be assigned to a physical frame? Well, a \#PF will occur because the VA is not mapped and once the
-physical frame is reserved and the paging structures are updated to hold the VA to PA mapping
+be assigned to a physical frame? Well, a \#PF will occur because the VA is not mapped, and once the
+physical frame is reserved, and the paging structures are updated to hold the VA to PA mapping,
 execution of the faulting instruction is restarted. For more information about handling page faults,
 see \fullref{sect:PfHandling}.
 
@@ -2088,7 +2088,7 @@ see \fullref{sect:PfHandling}.
 A heap is a data structure for dynamically allocating memory. A heap is initialized by calling
 \func{HeapInitializeSystem} - this function uses the VMM exposed function \func{VmmAllocRegion} to
 reserve and commit a continuous region of virtual memory (remember - because of the lazy nature of
-the VMM this does not allocate physical frames only when that memory is actually accessed).
+the VMM, this will allocate physical frames only when that memory is actually accessed).
 
 Heap memory can then be allocated through calls to \func{HeapAllocatePoolWithTag} and freed by calls
 to \func{HeapFreePoolWithTag}. The heap is the entity responsible for managing the continous region
@@ -2096,33 +2096,33 @@ of virtual memory.
 
 The reason why we need a heap and we don't just use the VMM allocation functions is because most of
 the time we won't need to allocate regions larger than a page size (VMM functions work at page size
-granularity) and we'd waste a lot of space for nothing: while the VAS is large and this wouldn't be
-a problem a physical frame will still be allocated for every allocation even if it is just one byte
+granularity), and we'd waste a lot of space for nothing: while the VAS is large and this wouldn't be
+a problem, a physical frame will still be allocated for every allocation, even if it is just one byte
 in size.
 
 Both the allocation and de-allocation functions require a DWORD Tag as a parameter - this is used
-only for extra-validation: when an allocation is done the heap allocation is marked with the
-requested tag, when memory is de-allocated the same tag must be used else an ASSERT will trigger.
-This reduces the probability of releasing the inappropriate memory due to code errors and is also a
+only for extra-validation: when an allocation is done, the heap allocation is marked with the
+requested tag. When memory is de-allocated, the same tag must be used, else an ASSERT will trigger.
+This reduces the probability of releasing the inappropriate memory due to code errors, and is also a
 helpful debugging feature for tracking memory leaks, i.e. it is easier to pinpoint the component
 causing the leak.
 
 Another parameter received by the allocation function is the alignment: you may sometimes need to
 allocate memory which must follow a certain alignment rule.
 
-NOTE: For managing heap memory you should use the \func{ExAllocatePoolWithTag} and 
+NOTE: For managing heap memory, you should use the \func{ExAllocatePoolWithTag} and 
 \func{ExFreePoolWithTag} functions exposed in \file{ex.h}.
 
 \subsection{Memory Management Unit}
 \label{sect:MMU}
 
-The memory management unit (MMU) is responsible for initializing and coordinating the PMM, VMM and
-the heaps. This unit is responsible for creating the paging structures which will be used by the
-system process, for performing the switch to these structures and for mapping and reserving the
+The memory management unit (MMU) is responsible for initializing and coordinating the PMM, VMM, and
+the heaps. This unit is responsible for creating the paging structures, which will be used by the
+system process, for performing the switch to these structures, and for mapping and reserving the
 whole kernel memory.
 
 \subsubsection{Interface}
-The MMU is also responsible for aggregating the functionality exposed by the PMM, VMM and heap for
+The MMU is also responsible for aggregating the functionality exposed by the PMM, VMM, and heap for
 easier use and convenience. Here is a summary of what the MMU provides (see \file{mmu.h}):
 \begin{itemize}
 	\item Support for performing PA to VA translations through the \func{MmuMapMemoryEx} and
