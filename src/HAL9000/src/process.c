@@ -187,7 +187,7 @@ ProcessExecuteForEachProcessEntry(
     return status;
 }
 
-//  warning C26130: Missing annotation _Requires_lock_held_(Process->PagingData->Lock) or _No_competing_thread_ at function 'ProcessActivatePagingTables'. 
+//  warning C26130: Missing annotation _Requires_lock_held_(Process->PagingData->Lock) or _No_competing_thread_ at function 'ProcessActivatePagingTables'.
 // Otherwise it could be a race condition. Variable 'Process->PagingData->Data' should be protected by lock 'Process->PagingData->Lock'.
 // I do remember having a look at this function a lot of times, it's OK (I don't remember what the problem is though :( )
 #pragma warning(push)
@@ -367,6 +367,11 @@ ProcessTerminate(
     PTHREAD pCurrentThread;
     BOOLEAN bFoundCurThreadInProcess;
     INTR_STATE oldState;
+
+    if (NULL == Process)
+    {
+        Process = GetCurrentProcess();
+    }
 
     ASSERT(Process != NULL);
     ASSERT(!ProcessIsSystem(Process));
