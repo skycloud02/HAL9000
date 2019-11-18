@@ -57,10 +57,10 @@ __start(
         // Call actual function
         status = __main(argc, argv);
 
-        LOG("Returned from main function, will call ThreadExit with status 0x%x!",
+        LOG("Returned from main function, will call ProcessExit with status 0x%x!",
              status);
 
-        SyscallThreadExit(status);
+        SyscallProcessExit(status);
     }
     __finally
     {
