@@ -109,6 +109,28 @@ _CpuMuCollectExtendedInformation(
     }
 }
 
+// this has nothing to do with the thread system, it is a `hack` used to
+// have the same consistency through GetCurrentThread() calls since
+// `CpuMuPreInit` was called until the first thread is setup on the CPU in
+// `ThreadSystemInitMainForCurrentCPU`
+// This DUMMY_THREAD will be the thread of both the DUMMY_CPU and the real CPU until
+// the threading system is set up
+
+// PS: next year we might want to create a real `THREAD_HEADER` structure in `thread_internal.h` to have a cleaner solution
+// However, as not to confuse people by updating the `THREAD` structure after the semester has started this is the current solution
+typedef struct _DUMMY_THREAD
+{
+    REF_COUNT               RefCnt;
+
+    struct _THREAD* Self;
+} DUMMY_THREAD;
+static_assert(sizeof(DUMMY_THREAD) == FIELD_OFFSET(THREAD, Id) && FIELD_OFFSET(DUMMY_THREAD, Self) == FIELD_OFFSET(THREAD, Self),
+    "Safety measure, if someone modified the THREAD structure we may need to modify this DUMMY_THREAD as well");
+
+// mark .Self as NULL such that GetCurrentThread will return always NULL until we setup the first real thread later in the boot
+// set up both for dummy CPU and for the real CPU structure until threading system is initialized
+static DUMMY_THREAD __dummySelfThread = { .Self = NULL };
+
 void
 CpuMuPreinit(
     void
@@ -130,7 +152,7 @@ CpuMuPreinit(
 
     // we're not using the SetCurrentThread macro because it will
     // try to dereference the PCPU pointer
-    __writemsr(IA32_FS_BASE_MSR,NULL);
+    __writemsr(IA32_FS_BASE_MSR, &__dummySelfThread);
 }
 
 void
@@ -301,30 +323,12 @@ CpuMuAllocCpu(
     return status;
 }
 
-// this has nothing to do with the thread system, it is a `hack` used to
-// have the same consistency through GetCurrentThread() calls since
-// `CpuMuInitCpu` was called until the first thread is setup on the CPU in
-// `ThreadSystemInitMainForCurrentCPU`
-
-// PS: next year we might want to create a real `THREAD_HEADER` structure in `thread_internal.h` to have a cleaner solution
-// However, as not to confuse people by updating the `THREAD` structure after the semester has started this is the current solution
-typedef struct _DUMMY_THREAD
-{
-    REF_COUNT               RefCnt;
-
-    struct _THREAD          *Self;
-} DUMMY_THREAD;
-static_assert(sizeof(DUMMY_THREAD) == FIELD_OFFSET(THREAD, Id) && FIELD_OFFSET(DUMMY_THREAD, Self) == FIELD_OFFSET(THREAD, Self),
-    "Safety measure, if someone modified the THREAD structure we may need to modify this DUMMY_THREAD as well");
-
 STATUS
 CpuMuInitCpu(
     IN          PPCPU       PhysicalCpu,
     IN          BOOLEAN     ChangeStack
     )
 {
-    // mark .Self as NULL such that GetCurrentThread will return always NULL until we setup the first real thread later in the boot
-    static DUMMY_THREAD __dummySelfThread = { .Self = NULL };
     STATUS status;
 
     ASSERT( NULL != PhysicalCpu );
