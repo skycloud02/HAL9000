@@ -15,14 +15,18 @@ The requirements of the ``Virtual Memory'' assignment are the following:
     \item \textit{Per Process Quotas}. You have to limit the number of open files a process can have
 and the number of physical frames it may use at one time.
 
+    \item \textit{Zero Pages}. You have to implement support for allocating virtual pages filled with
+zero bytes.
+
     \item \textit{System calls}. You have to implement two new system calls for allocating and
-de-allocating virtual memory. You must also support shared memory using this implementation.
+de-allocating virtual memory.
+
+		\item \textit{Stack Growth}. You have to add support for dynamically allocated stack.
 
     \item \textit{Swapping}. You have to implement a page replacement algorithm (i.e. second chance)
 and swapping.
 
-    \item \textit{Zero Pages}. You have to implement support for allocating virtual pages filled with
-zero bytes.
+		\item \textit{Shared Memory}. You have to add support for multiple processes to share the same memory region.
 
 \end{itemize}
 
@@ -32,12 +36,20 @@ The way to allocate requirements on member teams.
     \item 3-members teams
         \begin{enumerate}
             \item Per Process Quotas + Zero Pages
-            \item System calls
+            \item System calls + Stack Growth
             \item Swapping
         \end{enumerate}
 \end{itemize}
 
-
+\begin{itemize}
+    \item 4-members teams
+        \begin{enumerate}
+            \item Per Process Quotas + Zero Pages
+            \item System calls + Stack Growth
+            \item Swapping
+            \item Shared Memory
+        \end{enumerate}
+\end{itemize}
 
 \subsection{Basic Use Cases}
 
@@ -57,6 +69,16 @@ Some questions you have to answer (taken from the original Pintos design templat
         \begin{itemize}
             \item When sharing memory between processes the physical frames used should be counted in the quota for each process, how will you achieve this?
         \end{itemize}
+				
+	  \item Zero Pages
+        \begin{itemize}
+            \item How will you implement zero pages? How will you support accessing a range of zero memory larger than the swap file? Explain the algorithm required for your implementation.
+        \end{itemize}			
+				
+		\item Stack Growth
+        \begin{itemize}
+            \item Explain your heuristic for deciding whether a page fault for an invalid virtual address should cause the stack to be extended into the page that faulted. 
+        \end{itemize}		
 
     \item page table management
         \begin{itemize}
@@ -83,20 +105,14 @@ Some questions you have to answer (taken from the original Pintos design templat
 
             \item  A single lock for the whole VM system would make synchronization easy, but limit parallelism.  On the other hand, using many locks complicates synchronization and raises the possibility for deadlock but allows for high parallelism.  Explain where your design falls along this continuum and why you chose to design it this way.
         \end{itemize}
-
-    
-    \item Shared Memory
+				
+		\item Shared Memory
         \begin{itemize}
             \item What data do you need to maintain in order to be able to create and access shared memory regions? What data structure will you be using to maintain the keys?
 			
-			\item After creating a shared memory region, when it is accessed by the second process does the same virtual address need to be returned to the process? Motivate your answer.
+						\item After creating a shared memory region, when it is accessed by the second process does the same virtual address need to be returned to the process? Motivate your answer.
 			
-			\item How will you know when to delete the shared memory region? Take this scenario as an example: a process creates a region and 7 other processes access it, i.e. they call \textit{SyscallVirtualAlloc} with the same key, how do you know when you need to delete the key from your list and implicitly the shared memory region? This region should be valid until the last process which 'opened' it 'closes' it, i.e. calls \textit{SyscallVirtualFree}.
-        \end{itemize}
-
-    \item Zero Pages
-        \begin{itemize}
-            \item How will you implement zero pages? How will you support accessing a range of zero memory larger than the swap file? Explain the algorithm required for your implementation.
+						\item How will you know when to delete the shared memory region? Take this scenario as an example: a process creates a region and 7 other processes access it, i.e. they call \textit{SyscallVirtualAlloc} with the same key, how do you know when you need to delete the key from your list and implicitly the shared memory region? This region should be valid until the last process which 'opened' it 'closes' it, i.e. calls \textit{SyscallVirtualFree}.
         \end{itemize}
 
 \end{enumerate}
