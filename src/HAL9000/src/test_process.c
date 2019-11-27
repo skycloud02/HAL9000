@@ -120,6 +120,10 @@ const PROCESS_TEST PROCESS_TESTS[] =
     { "VirtualSharedLessAccess", "VirtualSharedNormal", "0 1 8 1" },
     { "VirtualSharedMoreAccess", "VirtualSharedNormal", "0 0 8 2" },
     { "VirtualSharedNormal", "VirtualSharedNormal", "0 1 8 0" },
+
+    // stack-growth
+    { "StackGrowthVariables", "StackGrowthVariables", NULL },
+    { "StackGrowthRecursiveFunction", "StackGrowthRecursiveFunction", NULL },
 };
 
 const DWORD PROCESS_TOTAL_NO_OF_TESTS = ARRAYSIZE(PROCESS_TESTS);
