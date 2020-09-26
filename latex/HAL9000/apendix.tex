@@ -3278,6 +3278,8 @@ You can run the chosen script without any parameters and the script will extract
 HAL9000 directory which it will create in the current directory. The script will do all the
 configuration steps described in steps 4 to 9 (inclusive).
 
+To run a perl script, open a Command Prompt window, navigate to the directory shown in \fullref{fig:AutoFolder} and type \file{perl HAL9000\_checkout.pl}.
+
 Once the script finishes execution, you need to continue the configuration manually with \fullref{sect:OpenVirtualMachines}.
 
 \subsection{Opening the virtual machines}
@@ -3614,6 +3616,87 @@ already know how to use hg, we recommend that you read the guide at \href{http:/
 For hosting your project we recommend that you use Bitbucket \cite{bitbucket}. You can use any 
 hosting site you like as long as the project repository is a private one, i.e. it is not visible to
 any users outside your team (and maybe your TA).
+
+\section{Git}
+
+\subsection{Why do I need it?}
+We strongly recommend using Git for versioning your code.
+Here are some reasons why:
+\begin{itemize}
+	\item The laboratories are designed in such a way that you can start each lab (with some exceptions) from a clean HAL9000 solution (one that does not include any of your modifications). 
+		 If you don't use versioning, you will start each lab where you left off the lab before and your code might contain bugs that will not let you finish the current lab activity.
+        \item There are some laboratories that require you to use code that was written in previous laboratories. 
+                With version control, it is easy to solve this problem. Supposing that you need the changes from a branch named \textbf{lab3} in order to implement \textbf{lab4}, you have the following options:
+		\begin{itemize}
+			\item Create a new branch \textbf{lab4} starting from branch \textbf{lab3}. Then, \textbf{lab4} will have from the start all the changes that are in \textbf{lab3}
+			\item Create a new branch \textbf{lab4} starting from branch \textbf{master} and merge \textbf{lab3} into \textbf{lab4}.
+		\end{itemize}
+	\item When preparing for the lab exam, by using a separate branch for each lab you can clearly see what were the code changes needed to solve a given lab activity.
+	\item If you create a private repository on github/bitbucket and push your changes there, you will have your code backed up.
+	\item During each lab activity, you can commit code snippets that you think are correct. If you later add some changes and discover that they are not needed, instead of deleting each change manually, you can simply discard them using git or reset your branch to a previous commit.
+	\item At the end of each lab you can generate a \textbf{git diff} which will contain your source code changes for that laboratory.
+\end{itemize}
+
+\subsection{Installing Git}
+Download Git from \href{https://git-scm.com/download/win}{here}.
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[scale=0.7]{Git_install_001.png}
+\end{figure}
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[scale=0.7]{Git_install_002.png}
+\end{figure}
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[scale=0.7]{Git_install_003.png}
+	\caption{You can check the \textit{Git Bash Here} and \textit{Git GUI Here} options if you want to, but git can be used from Command Prompt perfectly well.}
+\end{figure}
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[scale=0.7]{Git_install_004.png}
+	\caption{You can choose your favorite text editor from the dropdown list or try add a custom one.}
+\end{figure}
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[scale=0.7]{Git_install_005.png}
+\end{figure}
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[scale=0.7]{Git_install_006.png}
+\end{figure}
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[scale=0.7]{Git_install_007.png}
+\end{figure}
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[scale=0.7]{Git_install_008.png}
+\end{figure}
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[scale=0.7]{Git_install_009.png}
+\end{figure}
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[scale=0.7]{Git_install_010.png}
+\end{figure}
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[scale=0.7]{Git_install_011.png}
+\end{figure}
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[scale=0.7]{Git_install_012.png}
+\end{figure}
+
+\subsection{Examples}
+\subsubsection{Adding a remote repository to your local repository}
+\subsubsection{Creating a new branch for lab2}
+\subsubsection{Commiting and pushing changes to remote repository}
+\subsubsection{Discarding source code changes that I don't need}
+\subsubsection{Adding changes from one branch into another}
+\subsubsection{Generating git diff}
 
 \chapter{Coding Style}
 
