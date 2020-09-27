@@ -1222,7 +1222,7 @@ MmuGetSystemVirtualAddressForUserBuffer(
                              (DWORD)Size,
                              NULL,
                              Process->PagingData);
-        if (!SUCCEEDED(status))
+        if (pMdl == NULL)
         {
             LOG_FUNC_ERROR_ALLOC("MdlAllocateEx", Size);
             status = STATUS_UNSUCCESSFUL;
