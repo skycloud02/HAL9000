@@ -3189,7 +3189,7 @@ because it pulls all the latest changes from the HAL9000 repository) or \file{HA
 (see \fullref{sect:AutoConf}).
 \begin{enumerate}
 	\item Download and install 
-\href{https://www.visualstudio.com/post-download-vs/?sku=community&clcid=0x409&downloadrename=true}{Visual Studio 2015 Community}.
+\href{https://visualstudio.microsoft.com/downloads/}{Visual Studio 2019 Community}.
 
 	\item Download and install
 \href{http://www.activestate.com/activeperl/downloads/thank-you?dl=http://downloads.activestate.com/ActivePerl/releases/5.24.0.2400/ActivePerl-5.24.0.2400-MSWin32-x86-64int-300560.exe}{Active Perl x86}.
@@ -3253,8 +3253,8 @@ scripts which handle all the configuration steps except the first 3 and the last
 Unfortunately we haven't been able to automate those steps so you'll have to do them manually.
 
 These two scripts are \file{HAL9000\_checkout.pl} and \file{HAL9000\_install.pl}.
-Use only one of them. We recommend using \file{HAL9000\_checkout.pl}. The difference between them 
-is that \file{HAL9000\_checkout.pl} pulls the latest source files from the HAL9000 repository, while
+
+{\bf Use \file{HAL9000\_checkout.pl}}, which pulls the latest source files from the HAL9000 repository.
 \file{HAL9000\_install.pl} takes the source files from \file{HAL9000\_SRC.zip} (which might be outdated if we do not update them).
 
 Once you completed the first two steps you should download each archive described in the
