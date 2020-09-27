@@ -3637,66 +3637,121 @@ Here are some reasons why:
 	\item At the end of each lab you can generate a \textbf{git diff} which will contain your source code changes for that laboratory.
 \end{itemize}
 
+\FloatBarrier
 \subsection{Installing Git}
 Download Git from \href{https://git-scm.com/download/win}{here}.
-\begin{figure}[!htb]
+
+\begin{figure}[]
 	\centering
 	\includegraphics[scale=0.7]{Git_install_001.png}
 \end{figure}
-\begin{figure}[!htb]
+\begin{figure}[]
 	\centering
 	\includegraphics[scale=0.7]{Git_install_002.png}
 \end{figure}
-\begin{figure}[!htb]
+\begin{figure}[]
 	\centering
 	\includegraphics[scale=0.7]{Git_install_003.png}
 	\caption{You can check the \textit{Git Bash Here} and \textit{Git GUI Here} options if you want to, but git can be used from Command Prompt perfectly well.}
 \end{figure}
-\begin{figure}[!htb]
+\begin{figure}[]
 	\centering
 	\includegraphics[scale=0.7]{Git_install_004.png}
 	\caption{You can choose your favorite text editor from the dropdown list or try add a custom one.}
 \end{figure}
-\begin{figure}[!htb]
+\begin{figure}[]
 	\centering
 	\includegraphics[scale=0.7]{Git_install_005.png}
 \end{figure}
-\begin{figure}[!htb]
+\begin{figure}[]
 	\centering
 	\includegraphics[scale=0.7]{Git_install_006.png}
 \end{figure}
-\begin{figure}[!htb]
+\begin{figure}[]
 	\centering
 	\includegraphics[scale=0.7]{Git_install_007.png}
 \end{figure}
-\begin{figure}[!htb]
+\begin{figure}[]
 	\centering
 	\includegraphics[scale=0.7]{Git_install_008.png}
 \end{figure}
-\begin{figure}[!htb]
+\begin{figure}[]
 	\centering
 	\includegraphics[scale=0.7]{Git_install_009.png}
 \end{figure}
-\begin{figure}[!htb]
+\begin{figure}[]
 	\centering
 	\includegraphics[scale=0.7]{Git_install_010.png}
 \end{figure}
-\begin{figure}[!htb]
+\begin{figure}[]
 	\centering
 	\includegraphics[scale=0.7]{Git_install_011.png}
 \end{figure}
-\begin{figure}[!htb]
+\begin{figure}[]
 	\centering
 	\includegraphics[scale=0.7]{Git_install_012.png}
 \end{figure}
 
 \subsection{Examples}
-\subsubsection{Adding a remote repository to your local repository}
-\subsubsection{Creating a new branch for lab2}
-\subsubsection{Commiting and pushing changes to remote repository}
-\subsubsection{Discarding source code changes that I don't need}
-\subsubsection{Adding changes from one branch into another}
-\subsubsection{Generating git diff}
+\begin{figure}[htb]
+	\centering
+	\includegraphics[scale=0.9]{Bitbucket_private_repo.png}
+	\caption{Creating a private repo on Bitbucket/GitHub}
+\end{figure}
+
+\begin{figure}[htb]
+	\centering
+	\includegraphics[scale=0.9]{Git_set_remote.png}
+	\caption{Changing the remote url of the repository and push}
+\end{figure}
+
+\begin{figure}[htb]
+	\centering
+	\includegraphics[scale=0.9]{Git_create_branch.png}
+	\caption{Creating a new branch, checking out that branch an displaying the branches}
+\end{figure}
+
+\begin{figure}[htb]
+	\centering
+	\includegraphics[scale=0.9]{Git_source_change.png}
+	\caption{\textbf{git status} shows the branch you're on and what are the changes not yet committed}
+\end{figure}
+
+\begin{figure}[htb]
+	\centering
+	\includegraphics[scale=0.9]{Git_add.png}
+	\caption{\textbf{git add *} stages all your changes before committing them}
+\end{figure}
+
+\begin{figure}[htb]
+	\centering
+	\includegraphics[scale=0.9]{Git_commit_001.png}
+	\caption{When issuing the very first commit, git asks you to configure an email and a user name}
+\end{figure}
+
+\begin{figure}[htb]
+	\centering
+	\includegraphics[scale=0.9]{Git_commit_002.png}
+	\caption{\textbf{git commit} commits your changes and \textbf{git push origin} pushes the changes to the remote repository}
+\end{figure}
+
+\begin{figure}[htb]
+	\centering
+	\includegraphics[scale=0.9]{Git_discard_changes.png}
+	\caption{\textbf{git reset --hard HEAD} will discard the uncommitted changes and reset your branch to the latest commit}
+\end{figure}
+
+\begin{figure}[htb]
+	\centering
+	\includegraphics[scale=0.9]{Git_merge.png}
+	\caption{Creating new lab2 branch from master, merging in the modifications from lab1 and showing that the changes are present on lab2}
+\end{figure}
+
+\begin{figure}[htb]
+	\centering
+	\includegraphics[scale=0.9]{Git_diff.png}
+	\caption{Generating a diff at the end of lab2 to see what are the modifications compared to the clean solution}
+\end{figure}
 
 \chapter{Coding Style}
 
