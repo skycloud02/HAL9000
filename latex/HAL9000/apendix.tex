@@ -3620,8 +3620,8 @@ any users outside your team (and maybe your TA).
 \section{Git}
 
 \subsection{Why do I need it?}
-We strongly recommend using Git for versioning your code.
-Here are some reasons why:
+We strongly recommend using Git for versioning your code. If you chose to do so, it is really important that your repo in the cloud is \textbf{private} because we don't want the HAL9000 source code leaked.
+Here are some reasons why you should use Git:
 \begin{itemize}
 	\item The laboratories are designed in such a way that you can start each lab (with some exceptions) from a clean HAL9000 solution (one that does not include any of your modifications). 
 		 If you don't use versioning, you will start each lab where you left off the lab before and your code might contain bugs that will not let you finish the current lab activity.
@@ -3633,7 +3633,7 @@ Here are some reasons why:
 			\item Create a new branch \textbf{lab4} starting from branch \textbf{master} and  cherry-pick specific commits (in case you don't need everything from the previous lab)
 		\end{itemize}
 	\item When preparing for the lab exam, by using a separate branch for each lab you can clearly see what were the code changes needed to solve a given lab activity.
-	\item If you create a private repository on github/bitbucket and push your changes there, you will have your code backed up.
+	\item If you create a \textbf{private} repository on github/bitbucket and push your changes there, you will have your code backed up.
 	\item During each lab activity, you can commit code snippets that you think are correct. If you later add some changes and discover that they are not needed, you don't have to delete them manually, as you have the following ways to deal with them:
 		\begin{itemize}
 			\item if the bad changes are not committed, you can reset the branch to the latest commit
@@ -3641,6 +3641,12 @@ Here are some reasons why:
 			\item if the bad changes are in an older commit that is followed by good commits, you can revert the bad commit or you can use interactive rebase to drop the bad commit
 		\end{itemize}
 	\item At the end of each lab you can generate a \textbf{git diff} which will contain your source code changes for that laboratory.
+	\item It might happen that we will update the HAL9000 source code during the semester. If you use version control, it is really easy to apply our latest changes. The methods are:
+		\begin{itemize}
+			\item you can change the remote repo back to the one that was initially cloned, pull the master branch, then reset the remote repo to your private repo an rebase your branches on master so that they contain our changes
+			\item you can add another remote to your local repo. This way all your local branches other than master can track your remote branch, but your local master branch can track the remote repo that was initially cloned. This way you can easily rebase your branches on top of master
+			\item you can create a fork of the main repo (only possible on Bitbucket since our repository is set to allow only private forks), the mechanism of keeping up to date is nearly the same, you update the master from the fork, and rebase your branches or cherry-pick the changes to them
+		\end{itemize}
 \end{itemize}
 
 \FloatBarrier
