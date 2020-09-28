@@ -12,12 +12,6 @@ extern void SyscallEntry();
 
 #define SYSCALL_IF_VERSION_KM       SYSCALL_IMPLEMENTED_IF_VERSION
 
-
-STATUS
-SyscallValidateInterface(
-    IN  SYSCALL_IF_VERSION          InterfaceVersion
-);
-
 void
 SyscallHandler(
     INOUT   COMPLETE_PROCESSOR_STATE    *CompleteProcessorState
