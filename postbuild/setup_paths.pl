@@ -27,17 +27,23 @@ sub SetupPathsCmdFile
     
     my $data = <$fh>;
     close $fh;
+
+    if ($data =~ /if _%COMPUTERNAME%_==\_$computerName\_ (goto config_)$computerName\n/i) {
+        print "Updating existing configuration\n";
+        $data =~ s/(:config_$computerName)(.*?)(goto end\n\n)/$newConfiguration/si;
+    } else {
+        print "Adding new configuration\n";
+        $data =~ s/(if _%COMPUTERNAME%_==)(.*)(goto config_)(.*)/$1\_$computerName\_ $3$computerName\n$1$2$3$4/i;
     
-    $data =~ s/(if _%COMPUTERNAME%_==)(.*)(goto config_)(.*)/$1\_$computerName\_ $3$computerName\n$1$2$3$4/i;
-    
-    $data =~ s/(:end)/$newConfiguration$1/i;
-    
+        $data =~ s/(:end)/$newConfiguration$1/i;
+    }
+
     open($fh, '>', $cmdPath) or die "Cannot open file for write at $cmdPath\n"; 
    
     print $fh $data;
     
     close $fh;
-    
+
     print $data;
 }
 
