@@ -1182,7 +1182,7 @@ _ThreadDestroy(
     )
 {
     INTR_STATE oldState;
-    PTHREAD pThread = (PTHREAD) Object;
+    PTHREAD pThread = (PTHREAD) CONTAINING_RECORD(Object, THREAD, RefCnt);
 
     ASSERT(NULL != pThread);
     ASSERT(NULL == Context);
