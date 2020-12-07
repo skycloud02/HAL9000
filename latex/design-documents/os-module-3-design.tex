@@ -7,8 +7,13 @@
 
 \subsection{Initial Functionality}
 
+Describe in few words (one phrase) what you are starting from in your project. Even if this is something that we all know, it could be a good opportunity for you to be sure you really understand this aspect.
+
 
 \subsection{Requirements}
+
+Remove the following given official requirements and describe in few words (your own words) what you are requested to do in this part of your project. Even if this is something that we all know, it could be a good opportunity for you to be sure you really understand this aspect. 
+
 
 The requirements of the ``Virtual Memory'' assignment are the following:
 \begin{itemize}
@@ -53,17 +58,56 @@ The way to allocate requirements on member teams.
 
 \subsection{Basic Use Cases}
 
+Try to describe a real-life situation, where the requested OS functionality could be useful in a user-application or for a human being. This is also an opportunity for you to better understand what the requirements are and what are they good for. A simple use-case could be enough, if you cannot find more or do not have enough time to describe them.
+
 
 % ================================================================================= %
 \section{Design Description}
 
 \subsection{Needed Data Structures and Functions}
 
+This should be an overview of needed data structure and functions you have to use or add for satisfying the requirements. How the mentioned data structures and functions would be used, must be described in the next subsection ``Detailed Functionality''.
+
+\subsection{Interfaces Between Components}
+
+In this section you must describe the identified interference of your component(s) with the other components (existing or developed by you) in the project. You do not have to get in many details (which go into the next section), but must specify the possible inter-component interactions and specify the existing functions you must use or existing functions you propose for handling such interactions. 
 
 
-\subsection{Detailed Functionality}
+\subsection{Analysis and Detailed Functionality}
+Here is where you must describe detailed of your design strategy, like the way the mentioned data structures are used, the way the mentioned functions are implemented and the implied algorithms. 
 
-Some questions you have to answer (taken from the original Pintos design templates):
+This must be the main and the most consistent part of your design document.
+
+It very important to have a coherent and clear story (text) here, yet do not forget to put it, when the case in a technical form. So, for instance, when you want to describe an algorithm or the steps a function must take, it would be of real help for your design reader (understand your teacher) to see it as a pseudo-code (see an example below) or at least as an enumerated list. This way, could be easier to see the implied steps and their order, so to better understand your proposed solution.
+
+
+\subsection{Explanation of Your Design Decisions}
+
+This section is needed, only if you feel extra explanations could be useful in relation to your designed solution. For instance, if you had more alternative, but you chose one of them (which you described in the previous sections), here is where you can explain the reasons of your choice (which could be performance, algorithm complexity, time restrictions or simply your personal preference for the chosen solution). Though, try to keep it short. 
+
+If you had no extra explanation, this section could be omitted at all. 
+
+
+% ================================================================================= %
+\section{Tests}
+
+Your are given in your \OSName{} the tests your solution will be checked against and evaluated and you are not required to develop any addition test. Though, even if the tests are known, it would be helpful for you during the design phase to take a look at the given tests, because that way you can check if your design covers all of them. It would be sufficient for most of tests to just read the comments describing them.
+
+In this section you have to list the tests affecting your design and given a short description of each one (using you own words).
+
+
+% ================================================================================= %
+\section{Observations}
+
+This section is also optional and it is here where you can give your teacher a feedback regarding your design activity.
+
+
+% ================================================================================= %
+\section{Questions that you could be asked}
+
+This section must be removed. This is only to give you some hints for your design. 
+
+Some questions you have to answer (inspired from the original Pintos design templates), but these are not the only possible questions and we insist that your design should not be based exclusively to answering such questions:
 \begin{enumerate}
     \item Process Quotas
         \begin{itemize}
@@ -116,17 +160,3 @@ Some questions you have to answer (taken from the original Pintos design templat
         \end{itemize}
 
 \end{enumerate}
-
-
-\subsection{Explanation of Your Design Decisions}
-
-
-% ================================================================================= %
-\section{Tests}
-
-
-
-% ================================================================================= %
-\section{Observations}
-
-
