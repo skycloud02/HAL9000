@@ -1470,6 +1470,21 @@ pages in kernel space. For this we can use \func{MmuGetSystemVirtualAddressForUs
 result we will obtain a kernel virtual mapping which we can then access. Once the stack is set up
 we can free this virtual address using \func{MmuFreeSystemVirtualAddressForUserBuffer}.
 
+NOTE: The x64 function calling convention \cite{x64-calling-convention} specifies that the first four arguments of a function must be loaded in four CPU registers (namely RCX, RDX, R8, and R9, respectively). Though, space for them must still be reserved on the stack, just to give the called function a place to save them and be able to access them from stack also. This reserved space is called shadow space. In this context, we must note that actually we must not load the \texttt{argc} and \texttt{argv} on the stack, but only reserve space for them. Take care, however to the following two instructions in function \func{ThreadCreateEx}, which  obtain the \texttt{argc} and \texttt{argv}, respectively. 
+
+\begin{lstlisting}
+firstArg = (QWORD) (bProcessIniialThread ? Process->NumberOfArguments : (QWORD) Context);
+secondArg = (QWORD) (bProcessIniialThread ? PtrOffset(pThread->UserStack, SHADOW_STACK_SIZE + sizeof(PVOID)) : 0);
+\end{lstlisting}
+
+Please note, that the \texttt{argc}'s value is not taken from stack and that \texttt{argv}'s address is considered to be at offset \texttt{SHADOW\_STACK\_SIZE + sizeof(PVOID))} below the current stack's pointer. You must assure the formula used by that instruction holds or, if you place the \texttt{argv} array somewhere else on that stack, change the used offset. 
+
+The two values, i.e. \texttt{firstArg} and \texttt{secondArg} are later on loaded in \texttt{RCX} and \texttt{RDX} registers in function \func{\_ThreadSetupInitialState} by the following instructions:
+\begin{lstlisting}
+pState->RegisterArea.RegisterValues[RegisterRcx] = FirstArgument;
+pState->RegisterArea.RegisterValues[RegisterRdx] = SecondArgument;
+\end{lstlisting}
+
 \begin{figure}
 	\centering
 	\includegraphics[scale=0.85]{UserStackInit}

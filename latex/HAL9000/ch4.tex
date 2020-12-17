@@ -441,16 +441,13 @@ Implement stack growth. In project 2, the stack was 8 pages allocated eagerly an
 Now, you should start with a stack of only 1 page and if the stack grows past its current size, allocate additional pages as necessary.
 
 Allocate additional pages only if they "appear" to be stack accesses. Devise a heuristic
-that attempts to distinguish stack accesses from other accesses. The x86 PUSH instruction checks access permissions before
-it adjusts the stack pointer, so it may cause a page fault 8 bytes below the stack pointer.
-(Otherwise, PUSH would not be restartable in a straightforward fashion.)
+that attempts to distinguish stack valid accesses from other invalid accesses. A valid access corresponds, for instance, to the execution of PUS instruction, describe below. An invalid access corresponds to an attempt to access memory nearby the stack through a corrupted pointer. Though, there is no way to establish with precision if a stack access attempt is valid or not. Among the other strategies to use, we should disassemble the current instruction, though even doing so would not provide us certainty. 
 
-Within a page fault generated, you can retrieve the current stack pointer
-from the \var{Rsp} member of \struct{INTERRUPT\_STACK\_COMPLETE} passed to \func{\_IsrExceptionHandler}
-You should impose some absolute limit on stack size, as do most OSes.  Some OSes make
-the limit user-adjustable, e.g. with the ulimit command on many Unix systems.  On many
-GNU/Linux systems, the default limit is 8 MB. The first stack page need not be allocated lazily. You can allocate and initialize it with
-the command line arguments at load time, with no need to wait for it to be faulted in.
+As mention above, the x86 PUSH instruction would make a valid access to the stack. However, before storing the data on the stack and adjusting the stack pointer, it checks the memory access permissions. Because of this, it may cause a page fault 8 bytes below the current stack pointer (i.e. at a bigger address). Not doing so, PUSH would not be restartable in a straightforward fashion. There are some other PUSH-like instructions (e.g. PUSHA, PUSHAD, PUSHF, PUSHFD, PUSHFQ), which could trigger a page fault at a different distance by current stack pointer, though not all of them are valid for x64 mode or for user mode execution, so you could not consider them. 
+
+Another valid access to the stack results from the way the compiler generates executable code for a function. In particular, when entering a function, the stack pointer (i.e. RSP register) is decremented with some value, i.e. the stack is increased, in order to make space for the local variables of the function. Afterwards, the reserved space is directly accessed using MOV instructions. For our discussion, if the stack pointer gets outside the last mapped page after being decremented, the next stack accesses will trigger page faults. In that case, the page fault address is above the stack pointer (i.e. at a smaller address). 
+
+Within a page fault generated, you can retrieve the current stack pointer from the \var{Rsp} member of \struct{INTERRUPT\_STACK\_COMPLETE} passed to \func{\_IsrExceptionHandler} You should impose some absolute limit on stack size, as do most OSes.  Some OSes make the limit user-adjustable, e.g. with the ulimit command on many Unix systems.  On many GNU/Linux systems, the default limit is 8 MB. The first stack page need not be allocated lazily. You can allocate and initialize it with the command line arguments at load time, with no need to wait for it to be faulted in.
 
 % Stack pages do not count towards the processes's frame quota.
 
