@@ -711,7 +711,7 @@ _ProcessDestroy(
     IN_OPT  PVOID                   Context
     )
 {
-    PPROCESS Process = (PPROCESS) Object;
+    PPROCESS Process = (PPROCESS) CONTAINING_RECORD(Object, PROCESS, RefCnt);
 
     ASSERT(NULL != Process);
     ASSERT(!ProcessIsSystem(Process));
