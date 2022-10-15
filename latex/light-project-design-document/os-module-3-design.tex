@@ -34,7 +34,8 @@ The requirements of the ``Virtual Memory'' assignment are the following:
 
         \item Add a new system call "\textit{STATUS SyscallGetPageInternalFragmentation(IN PVOID AllocatedVirtAddr, OUT QWORD* IntFragSize);}", which stores in "\textit{IntFragSize}" the number of bytes lost due to internal fragmentation (i.e. space not required, yet allocated) in the virtual page the given "\textit{AllocatedVirtAddr}" belongs to. This could occur when the size in bytes of the allocated memory is not a multiple of page size.
 
-        \item Test your implementation writing a testing user application to containing at least the following code:
+        \item Test your implementation writing a testing user application to containing at least the following code (also available on moodle):
+\end{itemize}
 \begin{lstlisting}
 #define PGSIZE 4096
 #define SIZE (3 * PGSIZE)
@@ -52,11 +53,11 @@ __main(DWORD argc, char** argv)
     for (i = 0; i <= PGSIZE; i += PGSIZE / 4)
     {
         // allocated some memory (not always a multiple of page size)
-       if (((i / (PGSIZE / 4)) % 2 == 0))
-       {
+        if (((i / (PGSIZE / 4)) % 2 == 0))
+        {
             LOG("Allocate %d bytes, covered by %d pages\n", SIZE + i, (SIZE + i) / PGSIZE + ((SIZE + i) % PGSIZE == 0 ? 0 : 1));
-           status = SyscallVirtualAlloc(NULL, SIZE + i, VMM_ALLOC_TYPE_RESERVE | VMM_ALLOC_TYPE_COMMIT, PAGE_RIGHTS_READ | PAGE_RIGHTS_WRITE, UM_INVALID_HANDLE_VALUE, 0, &allocatedVirtAddr);
-       }
+            status = SyscallVirtualAlloc(NULL, SIZE + i, VMM_ALLOC_TYPE_RESERVE | VMM_ALLOC_TYPE_COMMIT, PAGE_RIGHTS_READ | PAGE_RIGHTS_WRITE, UM_INVALID_HANDLE_VALUE, 0, &allocatedVirtAddr);
+        }
         else
         {
             status = SyscallVirtualAlloc(NULL, SIZE + i, VMM_ALLOC_TYPE_RESERVE | VMM_ALLOC_TYPE_COMMIT | VMM_ALLOC_TYPE_NOT_LAZY, PAGE_RIGHTS_READ | PAGE_RIGHTS_WRITE, UM_INVALID_HANDLE_VALUE, 0, &allocatedVirtAddr);
@@ -91,15 +92,10 @@ __main(DWORD argc, char** argv)
         {
             LOG("Error: AllocatedVirtAddr = %X still mapped on AllocatedPhysAddr = %X after being released", allocatedPhysAddr, allocatedVirtAddr);
         }
-
     }
     return STATUS_SUCCESS;
 }
 \end{lstlisting}
-
-\end{itemize}
-
-
 
 % ================================================================================= %
 \section{Design Description}
