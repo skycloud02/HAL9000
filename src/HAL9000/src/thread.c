@@ -877,6 +877,7 @@ _ThreadSetupInitialState(
     pIst = (PINTERRUPT_STACK) pStack;
 
     pIst->Rip = (QWORD) StartFunction;
+    if (KernelStack)
     {
         pIst->CS = GdtMuGetCS64Supervisor();
         pIst->Rsp = (QWORD)(pIst + 1);
