@@ -1,26 +1,5 @@
-\documentclass[a4paper,12pt]{report}
-\usepackage{listings}
-\usepackage{xcolor}
-\lstset{
-	language=C,
-	basicstyle=\footnotesize\ttfamily,
-	keywordstyle=\bfseries,
-	commentstyle=\itshape,
-	escapechar=\,
-	emphstyle=\bfseries\color{red}
- 	commentstyle=\slshape\color{green!50!black},
- 	keywordstyle=\bfseries\color{blue!50!black},
- 	identifierstyle=\color{blue},
- 	stringstyle=\color{orange},
-	showstringspaces=false
-}
 
-
-\title{Light Project Design For The THREADS Module}
-
-\author{Students' Name}
-
-\begin{document}
+\chapter{Design of Module \textit{Threads}}
 
 \begin{abstract}
     This document contains the design for the changes required to implement the light project specification  of the threads module of the HAL9000 operating system. 
@@ -32,24 +11,22 @@
 \end{abstract}
 
 
+% ================================================================================= %
+\section{Assignment Requirement}
 
-\maketitle
 
-%% -----------------
-%% -----------------
-\chapter{Assignment requirements}
+% -------------------------------------------------- %
+\subsection{Initial Functionality}
 
-%% -----------------
-\section{Initial Functionality}
     The HAL9000 operating system supports multi-core processors. After boot, each core is allowed to run operating system threads. 
-    
+        
     Functions to manage threads are implemented in the \textit{thread.c} file. The \textit{thread.h} file contains a documented public interface for the thread functionality.
-    
+
     Information about threads are stored internally in the \lstinline|_THREAD| structure defined in \textit{thread\_internal.h}. This structure is reference counted. The \lstinline|_ThreadDestroy| function frees the memory for a \lstinline|_THREAD| structure whenever the reference count of it reaches 0.
-    
+
     All threads in the system are stored in the \lstinline|m_threadSystemData.AllThreadsList| list. This list is protected by the \lstinline|m_threadSystemData.AllThreadsLock|.
 
-\subsection{Thread identifiers}
+\subsubsection{Thread identifiers}
     A thread'a identifier is stored in the \lstinline|_THREAD| structure as the \lstinline|TID Id| field. 
     
     Code that initializes the Id of each thread is contained inside the \lstinline|_ThreadInit| function:
@@ -61,27 +38,29 @@
     
     Information about the current CPU is stored in the \lstinline|_PCPU| structure defined in \lstinline|cpumu.h| header file. A pointer to the structure corresponding to the current CPU may be obtained using the \lstinline|GetCurrentPcpu| macro. 
 
-\subsection{Account for number of threads created}
+\subsubsection{Account for number of threads created}
     The \lstinline|ThreadCreateEx| is used to create new threads to run on HAL900. This function allocates and sets up the \lstinline|_THREAD| structure for the newly created thread. The function is always executed in the context of the parent that creates the thread. 
 
     The \lstinline|ThreadExit| function is called whenever a thread terminates. HAL9000 assures that this function is always called by wrapping threads inside the \lstinline|_ThreadKernelFunction| function. 
     
-\subsection{Round robin scheduler}
+\subsubsection{Round robin scheduler}
     HAL9000 implements a round robin scheduler strategy based on timer interrupts. When a timer interrupt is generated on the processor, the interrupt handler eventually calls the \lstinline|ThreadTick| function. If a thread spent more then \lstinline|THREAD_TIME_SLICE| ticks on the processor, the scheduler forces it to yield execution. 
     
     The \lstinline{_ThreadSchedule} function is responsible with selecting the next thread to run on the CPU. 
 
-%% -----------------
-\section{Requirements}
 
-\subsection{Thread identifiers}
+
+% -------------------------------------------------- %
+\subsection{Requirements}
+
+\subsubsection{Thread identifiers}
 We are required to perform two changes:
 \begin{itemize}
     \item change the way thread identifiers are allocated, such that the values used for the field Id in structure THREAD to be multiples of 5
     \item store the identifier of the CPU the thread was created on.
 \end{itemize}
 
-\subsection{Account for number of threads created}
+\subsubsection{Account for number of threads created}
 
 We are required to print two messages as follows. 
 
@@ -97,7 +76,7 @@ For this we need to
 \end{itemize}
 
 
-\subsection{ Round robin scheduler}
+\subsubsection{ Round robin scheduler}
 
 For this task we have three requirements:
 \begin{itemize}
@@ -106,13 +85,14 @@ For this task we have three requirements:
     \item when a thread terminates a message like "Thread [ID=CRT\_TH\_ID] was allocated X time quanta of length Y" must be displayed, where CRT\_TH\_ID is the ID of the terminating thread.
 \end{itemize}
 
-%% -----------------
-%% -----------------
-\chapter{Design Description}
+
+
+% ================================================================================= %
+\section{Design Description}
 
 %% -----------------
-\section{Needed Data Structures and Functions}
-\subsection{Thread identifiers}
+\subsection{Needed Data Structures and Functions}
+\subsubsection{Thread identifiers}
 We will store the CPU a thread was created on inside the \lstinline|_THREAD| structure. For this we will add a new field named \lstinline|CreationCpuApicId| inside the structure as follows:
 
 \begin{lstlisting}
@@ -126,7 +106,7 @@ We will store the CPU a thread was created on inside the \lstinline|_THREAD| str
 
 We will need to modify the \lstinline|_ThreadInit| function to initialize this new field. 
 
-\subsection{Account for number of threads created}
+\subsubsection{Account for number of threads created}
 
 The messages will be added in the \lstinline|_ThreadInit| and \lstinline|_ThreadExit| functions. 
 
@@ -157,12 +137,12 @@ We will create a new function named \lstinline|_ThreadReferenceByTid| to allow u
  PTHREAD _ThreadReferenceByTid(TID ThreadId);
 \end{lstlisting}
 
-\subsection{Round robin scheduler}
+\subsubsection{Round robin scheduler}
   \textcolor{red}{This subsection is left intentionally blank. It is your task to fill this section in before presenting the document to your teacher. Please note that you need to keep the same level of details as in the previous subsection. Note: This section has a bonus you may chose to implement}
   
 %% -----------------  
-\section{Analysis and Detailed Functionality}
-\subsection{Thread identifiers}
+\subsection{Analysis and Detailed Functionality}
+\subsubsection{Thread identifiers}
 
 For the first part of the task we will change the definition of \lstinline|TID_INCREMENT| to 5 instead of the existing 4. This will alter the functionality of the \lstinline|_ThreadSystemGetNextTid| such as to produce thread id numbers that are multiples of 5. 
 
@@ -183,7 +163,7 @@ _ThreadInit(...)
 \end{lstlisting}
 
 
-\subsection{Account for number of threads created}
+\subsubsection{Account for number of threads created}
 
 We will change \lstinline|_ThreadInit| to initialize needed fields we add for this task.
 
@@ -338,15 +318,15 @@ We use \lstinline|InterlockedDecrement| to mark that this child becomes inactive
 Due to how we implemented \lstinline |_ThreadReferenceByTid| we need to dereference the parent if we were able to retrieve the pointer to it.
 
 
-\subsection{Round robin scheduler}
+\subsubsection{Round robin scheduler}
   \textcolor{red}{This subsection is left intentionally blank. It is your task to fill this section in before presenting the document to your teacher. Please note that you need to keep the same level of details as in the previous subsection.Note: This section has a bonus you may chose to implement } 
  
 %% -----------------  
-\section{Explanation of design decisions}
- \subsection{Thread identifiers}
+\subsection{Explanation of design decisions}
+ \subsubsection{Thread identifiers}
  This design for this requirement was direct. No other alternatives were considered.
  
- \subsection{Account for number of threads created} 
+ \subsubsection{Account for number of threads created} 
  Two viable alternatives were considered for accessing the parent thread from the child context on \lstinline|_ThreadExit|:
  \begin{itemize}
      \item Store a referenced pointer to the parent
@@ -355,23 +335,24 @@ Due to how we implemented \lstinline |_ThreadReferenceByTid| we need to derefere
  
  Both ideas work in practice. Storing a reference to the parent makes the code faster because we have direct access to the parent so we don't perform the look-up on the threads list. The main drawback is that it introduces a severe memory penalty; even if the parent thread finishes execution, it will be cleaned only when all of it's descendants will finish execution. Storing the id of the parent instead of the pointer changes the requirement by altering the message in case the parent already terminated but has no memory consumption issues.
  
- \subsection{Round robin scheduler}
+ \subsubsection{Round robin scheduler}
   \textcolor{red}{This subsection is left intentionally blank. It is your task to fill this section in before presenting the document to your teacher. Write here any design decisions you made.} 
- 
-  
-%% -----------------
-%% -----------------
-\chapter{Tests}
-\section{Adding a new test to HAL9000}
+
+
+
+% ================================================================================= %
+\section{Tests}
+
+\subsection{Adding a new test to HAL9000}
 
 The functionality added in this this project may be tested by adding a new command to HAL9000. Existing commands may be seen in \textit{cmd\_interpreter.c} in the \lstinline|COMMANDS| array. 
 
 HAL9000 has a \textit{run} command that allows the execution of tests by name. The tests are executed by the \lstinline|CmdRunTest| function. Tests for the Threads module can be found in the \lstinline|THREADS_TEST| array in the \textit{test\_thread.c} file. New tests can be added as an entry in this array. Implementation for the test should also be added in the \textit{test\_threads.c} file.  
 
 %% -----------------
-\section{Test-case design}
+\subsection{Test-case design}
 
-\subsection{Creation of multiple threads}
+\subsubsection{Creation of multiple threads}
 
 We are required to create a tree of threads, each leaf level having less children then the parent level. 
 
@@ -423,11 +404,15 @@ STATUS
 
 Our function creates threads that perform the same task as itself but with the context decremented. To start the test, we just need to directly call \lstinline|_ThreadLpTest| with \lstinline|Context| set to 5. 
 
-\subsection{Adding synchronization mechanisms}
+\subsubsection{Adding synchronization mechanisms}
 
 HAL9000 already contains an implementation of a function that waits for a thread to finish execution. This function is \lstinline|ThreadWaitForTermination|. To add synchronization the previous test just need to create all the child threads and before exiting the function call \lstinline|ThreadWaitForTermination| on all child handles. We need to store the child handles in a dynamically allocated array. Dynamic memory allocation can be done using \lstinline|ExAllocatePoolWithTag|.
 
 
 \textcolor{red}{This subsection is not yet complete. It is your task to fill it with additional explanations before presenting the document to your teacher. Here you should create your pseudocode for your use of \lstinline|ThreadWaitForTermination| to solve the requirement.}
 
-\end{document}
+% ================================================================================= %
+\section{Observations}
+
+It was an interesting subject to work on. It required much time than I estimated. I learned that a good design is not a trivial thing to do and requires some time to be done.  
+
