@@ -17,48 +17,88 @@ Remove the following given official requirements and describe in few words (your
 
 The requirements of the ``Virtual Memory'' assignment are the following:
 \begin{itemize}
-    \item \textit{Per Process Quotas}. You have to limit the number of open files a process can have
-and the number of physical frames it may use at one time.
+    \item Implement the system calls \textit{SyscallVirtualAlloc(...)} and \textit{SyscallVirtualFree(...)}, whose signatures are given in file "syscall\_func.h". You should only handle cases when the following conditions on the given parameters hold simultaneously, otherwise return \texttt{STATUS\_INVALID\_PARAMETERx} (x is the number of the invalid parameter, starting from 1):
+        \begin{itemize}
+            \item  \texttt{BaseAddress == NULL} (i.e. let the kernel decide where in the calling process' virtual address space to reserve the needed pages for the requested memory);
 
-    \item \textit{Zero Pages}. You have to implement support for allocating virtual pages filled with
-zero bytes.
+            \item \texttt{FileHandle == UM\_INVALID\_HANDLE\_VALUE} (i.e. not a memory-mapped file), and
 
-    \item \textit{System calls}. You have to implement two new system calls for allocating and
-de-allocating virtual memory.
+            \item \texttt{Key == 0} (no sharing).
+        \end{itemize}
+        NOTE: you could make use the kernel functions "\textit{VmmAllocRegionEx(...)}" and "\textit{VmmFreeRegionEx(...)}". 
 
-		\item \textit{Stack Growth}. You have to add support for dynamically allocated stack.
 
-    \item \textit{Swapping}. You have to implement a page replacement algorithm (i.e. second chance)
-and swapping.
+        \item Add a new system call "\textit{STATUS SyscallGetPageFaultNo(IN PVOID AllocatedVirtAddr, OUT QWORD* PageFaultNo);}", which stores in "\textit{PageFaultNo}" the number of page faults generated during accesses to the virtual page containing the address given by the "\textit{AllocatedVirtAddr}" parameter. 
 
-		\item \textit{Shared Memory}. You have to add support for multiple processes to share the same memory region.
+        \item Add a new system call "\textit{STATUS SyscallGetPagePhysAddr(IN PVOID AllocatedVirtAddr, OUT PVOID* AllocatedPhysAddr);}", which stores in "\textit{AllocatedPhysAddr}" the physical address the given "\textit{AllocatedVirtAddr}" is mapped to. If the page containing the given virtual address is not mapped (i.e. not present) in the physical memory, NULL should be returned.
+
+        \item Add a new system call "\textit{STATUS SyscallGetPageInternalFragmentation(IN PVOID AllocatedVirtAddr, OUT QWORD* IntFragSize);}", which stores in "\textit{IntFragSize}" the number of bytes lost due to internal fragmentation (i.e. space not required, yet allocated) in the virtual page the given "\textit{AllocatedVirtAddr}" belongs to. This could occur when the size in bytes of the allocated memory is not a multiple of page size.
+
+        \item Test your implementation writing a testing user application to containing at least the following code:
+\begin{lstlisting}
+#define PGSIZE 4096
+#define SIZE (3 * PGSIZE)
+#define PtrOff(ptr,off) (((PBYTE)(ptr)) + ((QWORD)(off)))
+STATUS
+__main(DWORD argc, char** argv)
+{
+    UNREFERENCED_PARAMETER(argc);
+    UNREFERENCED_PARAMETER(argv);
+    PVOID allocatedVirtAddr;
+    PBYTE pg, off;
+    PVOID allocatedPhysAddr;
+    QWORD i, pageFaultNo, pageIntFrag;
+    STATUS status;
+    for (i = 0; i <= PGSIZE; i += PGSIZE / 4)
+    {
+        // allocated some memory (not always a multiple of page size)
+       if (((i / (PGSIZE / 4)) % 2 == 0))
+       {
+            LOG("Allocate %d bytes, covered by %d pages\n", SIZE + i, (SIZE + i) / PGSIZE + ((SIZE + i) % PGSIZE == 0 ? 0 : 1));
+           status = SyscallVirtualAlloc(NULL, SIZE + i, VMM_ALLOC_TYPE_RESERVE | VMM_ALLOC_TYPE_COMMIT, PAGE_RIGHTS_READ | PAGE_RIGHTS_WRITE, UM_INVALID_HANDLE_VALUE, 0, &allocatedVirtAddr);
+       }
+        else
+        {
+            status = SyscallVirtualAlloc(NULL, SIZE + i, VMM_ALLOC_TYPE_RESERVE | VMM_ALLOC_TYPE_COMMIT | VMM_ALLOC_TYPE_NOT_LAZY, PAGE_RIGHTS_READ | PAGE_RIGHTS_WRITE, UM_INVALID_HANDLE_VALUE, 0, &allocatedVirtAddr);
+        }
+
+        if (!SUCCEEDED(status))
+        {
+            LOG("Cannot allocate memory: err status = %d\n", status);
+            return status;
+        }
+        // get access (write) to the allocated memory, byte by byte
+        for (off = allocatedVirtAddr; off < PtrOff(allocatedVirtAddr, SIZE + i); off += 1)
+        *(BYTE*)off = 10;
+        // get info about the allocated memory, page by page
+        for (pg = allocatedVirtAddr; pg < PtrOff(allocatedVirtAddr, SIZE + i); pg += PGSIZE)
+        {
+            SyscallGetPagePhysAddr(pg, &allocatedPhysAddr);
+            LOG("AllocatedPhysAddr = %X for AllocatedVirtAddr = %X", allocatedPhysAddr, pg);
+            SyscallGetPageFaultNo(pg, &pageFaultNo);
+            LOG("PageFaultNo = %u for VirtAddr = %X", pageFaultNo, pg);
+            SyscallGetPageInternalFragmentation(pg, &pageIntFrag);
+            LOG("InternalFrag = %u for VirtAddr = %X", pageIntFrag, pg);
+        }
+        // release the allocated memory
+        SyscallVirtualFree(allocatedVirtAddr, 0, VMM_FREE_TYPE_RELEASE);
+        status = SyscallGetPagePhysAddr(allocatedVirtAddr, &allocatedPhysAddr);
+        if (!SUCCEEDED(status))
+        {
+            LOG("AllocatedVirtAddr = %X is not mapped anymore", allocatedVirtAddr);
+        }
+        else
+        {
+            LOG("Error: AllocatedVirtAddr = %X still mapped on AllocatedPhysAddr = %X after being released", allocatedPhysAddr, allocatedVirtAddr);
+        }
+
+    }
+    return STATUS_SUCCESS;
+}
+\end{lstlisting}
 
 \end{itemize}
 
-
-The way to allocate requirements on member teams. 
-\begin{itemize}
-    \item 3-members teams
-        \begin{enumerate}
-            \item Per Process Quotas + Zero Pages
-            \item System calls + Stack Growth
-            \item Swapping
-        \end{enumerate}
-\end{itemize}
-
-\begin{itemize}
-    \item 4-members teams
-        \begin{enumerate}
-            \item Per Process Quotas + Zero Pages
-            \item System calls + Stack Growth
-            \item Swapping
-            \item Shared Memory
-        \end{enumerate}
-\end{itemize}
-
-\subsection{Basic Use Cases}
-
-Try to describe a real-life situation, where the requested OS functionality could be useful in a user-application or for a human being. This is also an opportunity for you to better understand what the requirements are and what are they good for. A simple use-case could be enough, if you cannot find more or do not have enough time to describe them.
 
 
 % ================================================================================= %
@@ -67,10 +107,6 @@ Try to describe a real-life situation, where the requested OS functionality coul
 \subsection{Needed Data Structures and Functions}
 
 This should be an overview of needed data structure and functions you have to use or add for satisfying the requirements. How the mentioned data structures and functions would be used, must be described in the next subsection ``Detailed Functionality''.
-
-\subsection{Interfaces Between Components}
-
-In this section you must describe the identified interference of your component(s) with the other components (existing or developed by you) in the project. You do not have to get in many details (which go into the next section), but must specify the possible inter-component interactions and specify the existing functions you must use or existing functions you propose for handling such interactions. 
 
 
 \subsection{Analysis and Detailed Functionality}
@@ -91,10 +127,6 @@ If you had no extra explanation, this section could be omitted at all.
 % ================================================================================= %
 \section{Tests}
 
-Your are given in your \OSName{} the tests your solution will be checked against and evaluated and you are not required to develop any addition test. Though, even if the tests are known, it would be helpful for you during the design phase to take a look at the given tests, because that way you can check if your design covers all of them. It would be sufficient for most of tests to just read the comments describing them.
-
-In this section you have to list the tests affecting your design and given a short description of each one (using you own words).
-
 
 % ================================================================================= %
 \section{Observations}
@@ -102,61 +134,3 @@ In this section you have to list the tests affecting your design and given a sho
 This section is also optional and it is here where you can give your teacher a feedback regarding your design activity.
 
 
-% ================================================================================= %
-\section{Questions that you could be asked}
-
-This section must be removed. This is only to give you some hints for your design. 
-
-Some questions you have to answer (inspired from the original Pintos design templates), but these are not the only possible questions and we insist that your design should not be based exclusively to answering such questions:
-\begin{enumerate}
-    \item Process Quotas
-        \begin{itemize}
-            \item When sharing memory between processes the physical frames used should be counted in the quota for each process, how will you achieve this?
-        \end{itemize}
-				
-	  \item Zero Pages
-        \begin{itemize}
-            \item How will you implement zero pages? How will you support accessing a range of zero memory larger than the swap file? Explain the algorithm required for your implementation.
-        \end{itemize}			
-				
-		\item Stack Growth
-        \begin{itemize}
-            \item Explain your heuristic for deciding whether a page fault for an invalid virtual address should cause the stack to be extended into the page that faulted. 
-        \end{itemize}		
-
-    \item page table management
-        \begin{itemize}
-            \item In a few paragraphs, describe your code for locating the frame, if any, that contains the data of a given page.
-            
-            \item How does your code coordinate accessed and dirty bits between kernel and user virtual addresses that alias a single frame, or alternatively how do you avoid the issue?
-            
-            \item When two user processes both need a new frame at the same time, how are races avoided?
-        \end{itemize}
-    
-    \item page replacement and swapping
-        \begin{itemize}
-            \item When a frame is required but none is free, some frame must be evicted.  Describe your code for choosing a frame to evict.
-            
-            \item When a process P obtains a frame that was previously used by a process Q, how do you adjust the page table (and any other data structures) to reflect the frame Q no longer has?
-            
-            \item Explain the basics of your VM synchronization design. In particular, explain how it prevents deadlock. (Refer to the textbook for an explanation of the necessary conditions for deadlock.)
-            
-            \item A page fault in process P can cause another process Q's frame to be evicted. How do you ensure that Q cannot access or modify the page during the eviction process?  How do you avoid a race between P evicting Q's frame and Q faulting the page back in?
-            
-            \item Suppose a page fault in process P causes a page to be read from the file system or swap. How do you ensure that a second process Q cannot interfere by e.g. attempting to evict the frame while it is still being read in?
-            
-            \item Explain how you handle access to paged-out pages that occur during system calls.  Do you use page faults to bring in pages (as in user programs), or do you have a mechanism for "locking" frames into physical memory, or do you use some other design?  How do you gracefully handle attempted accesses to invalid virtual addresses?
-
-            \item  A single lock for the whole VM system would make synchronization easy, but limit parallelism.  On the other hand, using many locks complicates synchronization and raises the possibility for deadlock but allows for high parallelism.  Explain where your design falls along this continuum and why you chose to design it this way.
-        \end{itemize}
-				
-		\item Shared Memory
-        \begin{itemize}
-            \item What data do you need to maintain in order to be able to create and access shared memory regions? What data structure will you be using to maintain the keys?
-			
-						\item After creating a shared memory region, when it is accessed by the second process does the same virtual address need to be returned to the process? Motivate your answer.
-			
-						\item How will you know when to delete the shared memory region? Take this scenario as an example: a process creates a region and 7 other processes access it, i.e. they call \textit{SyscallVirtualAlloc} with the same key, how do you know when you need to delete the key from your list and implicitly the shared memory region? This region should be valid until the last process which 'opened' it 'closes' it, i.e. calls \textit{SyscallVirtualFree}.
-        \end{itemize}
-
-\end{enumerate}
