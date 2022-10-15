@@ -3,7 +3,7 @@
 \usepackage{xcolor}
 \lstset{
 	language=C,
-	basicstyle=\small\ttfamily,
+	basicstyle=\footnotesize\ttfamily,
 	keywordstyle=\bfseries,
 	commentstyle=\itshape,
 	escapechar=\,
@@ -192,12 +192,17 @@ The changes may be similar to:
     pThread->Priority = Priority;
     
     // ADDED lines:
-    pThread-> ParentId = GetCurrentThread()->Id;
-    pThread-> NumberOfActiveChildren = 0;
+    PTHREAD currentThread = GetCurrentThread();
+    pThread->ParentId = currentThread ? currentThread->Id : 0;
+    pThread->NumberOfActiveChildren = 0;
 
     ...
  }
 \end{lstlisting}
+
+Note that \lstinline|_ThreadInit| is also called in \lstinline|ThreadSystemInitMainForCurrentCPU|, where don't yet have
+a ``current thread'', so \lstinline|GetCurrentThread()| will return \lstinline|NULL|. This is why we need to check the returned value
+and assign 0 to \lstinline|pThread->ParentId|.
 
 We will modify the \lstinline|ThreadCreateEx| function to count the number of active children for a given thread as follows:
 \begin{lstlisting}
@@ -238,7 +243,7 @@ else
     return NULL;
   }
  \end{lstlisting}
- We reference the thread before releasing it to give a smart pointer to the caller.
+ We reference the thread before releasing it to avoid a race condition between returning the thread and it being freed.
  
  We now need to just add the messages. For the first message we will modify the \lstinline|ThreadCreateEx| function to display the required message using \lstinline|LOG|.
  
@@ -272,7 +277,7 @@ if(!pParent)
 {
    LOG("Thread [ID=%d] created on CPU [ID=%d]" ]
        "is finishing on CPU [ID=%d], while it's parent"\
-       "thread is already terminated!.",
+       "thread is already destroyed!.",
        pThread->Tid,
        PThread->CreationCpuApicId,
        GetCurrentPcpu()->ApicId);
