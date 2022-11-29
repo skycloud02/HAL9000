@@ -202,12 +202,17 @@ In file \lstinline|thread_internal.h|:
 \begin{lstlisting}
  struct _THREAD
  {
+    LOCK                PriorityProtectionLock;
+ 
+    _Guarded_by_(PriorityProtectionLock)
     THREAD_PRIORITY     Priority;       // the effective priority (already defined)
 
     ...
     
     // Used for priority donation
+    _Guarded_by_(PriorityProtectionLock)
     THREAD_PRIORITY     RealPriority;    // the real (original) priority
+    
     LIST_ENTRY          AcquiredMutexesList; // the list of mutexes held by thread
     PMUTEX              WaitedMutex;     // the mutex thread waits for
     
@@ -337,9 +342,10 @@ We discover an optimization we could apply when checking for timers' triggering 
 \begin{enumerate}
     \item obtains from its first two parameters, which are of the generic type \lstinline|PLIST_ENTRY|, two pointers to \lstinline|EX_TIMER| structure, using the \lstinline|CONTAINING_RECORD| macro;
     
-    \item compare the two timers by calling the function \lstinline|ExTimerCompareTimers|.
+    \item compare the two timers by calling the function \lstinline|ExTimerCompareTimers()|.
 \end{enumerate}
 
+Take care that using the \lstinline|ForEachElementExecute()| function to iterate the global timer list could traverse the entire list, even if that list is ordered, so making your optiomization ineffective. Though, we could change this behaviour setting correspondigly the forth parameter (\lstinline|AlMustSucceed|) of \lstinline|ForEachElementExecute()| function and by carrefully implementing the \lstinline|ExTimerCompareTimer()| function. Take a look at the implementation of function \lstinline|ForEachElementExecute()| to see exactly how its forth parameter must be specify and how the \lstinline|ExTimerCompareTimer()| function must be implemented. 
 
 \subsubsection{Priority Scheduler. Fixed Priority Scheduler}
 
@@ -443,7 +449,7 @@ SmpSendGenericIpiEx(ThreadYieldForIpi, NULL, NULL, NULL,
      FALSE, SmpIpiSendToAllIncludingSelf, dest);    
 \end{lstlisting}
 
-The given \lstinline|SmpIpiSendToAllIncludingSelf()| function would be executed by each CPU when handling the received IPi and should checked the condition mentioned before. We could immediately noted that the function \lstinline|ThreadYield()| does exactly this, besides protecting the ready list with a lock while investigating it, a condition which is really necessarily to avoid multiple CPUs taking the same threads for being run. 
+The given \lstinline|SmpIpiSendToAllIncludingSelf()| function would be executed by each CPU when handling the received IPi and should checked the condition mentioned before. We could immediately noted that the function \lstinline|ThreadYield()| does exactly this, besides protecting the ready list with a lock while investigating it, a condition which is really necessarily to avoid multiple CPUs taking the same threads for being run. Pay attention however, that calling \lstinline|ThreadYield()| in an interrupt handler (what the \lstinline|ThreadYieldForIpi()| function basically is for the IPI we send to CPUs) is not a good idea, while switching CPU to another thread from the one currently handling an interrupt could lead to unpredictable results. Yet, you could trigger an \lstinline|ThreadYield()| indirectly, when the interrupt handling is over, by setting to TRUE the \lstinline|YieldOnInterruptReturn| flag for the current CPU. See a similar mechanism in \lstinline|ThreadTick()| function, where the Round-Robin scheduler forces a CPU switch (i.e. a thread yield) when the current thread quantum expires: \lstinline|pCpu->ThreadData.YieldOnInterruptReturn = TRUE;|.
 
 One aspect we should manage is the way to find out is preemption is needed or not when a thread is unblocked, even in case of concurrent execution of CPUs. This means that while comparing the unblocked thread's priority to those of the currently running threads, we must be sure the investigated CPUs will not be switched to other threads. We found out two ways to manage correctly this concurrency:
 \begin{enumerate}
@@ -512,26 +518,27 @@ $max(real\_priority, max(donated_priorities))$
 The reason the real priority should be considered is that the thread could change its real priority to a higher value, after being donated a priority due to a mutex is held. 
 
 There are different strategies to keep track of donated priorities, but the one we considered is to maintain for each thread a list of the mutexes it holds. Noting that each mutex is associated a waiting list, i.e. a list of all thread waiting for that mutex, it is very simple to see which such threads have a greater priority than the mutex holder, and consider such a priority as a donation. This is the reason we defined the field \lstinline|AcquiredMutexesList| for each thread. As with any variable, let us see how it is initialized and used:
-\begin{itemize}
+\begin{enumerate}
     \item \lstinline|AcquiredMutexesList| initialization should be done at thread creation and we chose to do it in \lstinline|_ThreadInit|;
     
-    \item inserting an element (i.e. a mutex) in that list must be done when a mutex is acquired by the thread, i.e in function \lstinline|MutexAcquire()| on the execution path corresponding the the mutex being acquired (after the while loop, waiting for the mutex to become available);
+    \item \label{item:insert-a-mutex} inserting an element (i.e. a mutex) in that list must be done when a mutex is acquired by the thread, i.e in function \lstinline|MutexAcquire()| on the execution path corresponding the the mutex being acquired (after the while loop, waiting for the mutex to become available);
     
-    \item removing an element (i.e. a mutex) from that list must be done when a mutex is no longer held by a thread, so in function \lstinline|MutexRelease()|.
-\end{itemize}
+    \item \label{item:remove-mutex}removing an element (i.e. a mutex) from that list must be done when a mutex is no longer held by a thread, so in function \lstinline|MutexRelease()|. 
+\end{enumerate}
 
-Because we must add \lstinline|MUTEX| structures to the \lstinline|AcquiredMutexesList|, we need to add a \lstinline|LIST_ENTRY| field in that structures, which we name \lstinline|AcquiredMutexListElem|. 
+Because we must add \lstinline|MUTEX| structures to the \lstinline|AcquiredMutexesList|, we need to add a \lstinline|LIST_ENTRY| field in that structures, which we name \lstinline|AcquiredMutexListElem|. Using this field, steps \ref{item:insert-a-mutex} and \ref{item:remove-mutex} described above could be done like this: \lstinline|InsertTailList(GetCurrentThread()->AcquiredMutexList, &Mutex->AcuiredMutexListElem);| for the former and \lstinline|RemoveEntryList(&Mutex->AcuiredMutexListElem)| for the later. Take a look of the implementation of \lstinline|InsertTailList()| and \lstinline|RemoveEntryList()| functions to understand their functionality and required parameters. 
 
 The next logical step we must establish is the more complex way a thread's priority is recomputed, when that thread releases one of its held mutexes. So the very simple algorithm described above in function \lstinline|MutexRelease()| was replaced by another one that we will place in function \lstinline|ThreadRecomputePriority()|, which basically performs the following steps:
 \begin{enumerate}
     \item initialize a current maximum value to the thread's real priority;
     \item iterate the \lstinline|AcquiredMutexesList| of the thread;
-    \item for each mutex, iterate its waiting list;
+    \item \label{item:iterate-mutex-list} for each mutex, iterate its waiting list;
     \item for each waiting thread in that list, compares its effective priority to the current maximum, and if bigger, updates the maximum to the new value;
     \item set the thread's effective priority \lstinline|Priority| to the maximum value found.
 \end{enumerate}
 
-We will always use the \lstinline|ThreadGetPriority()| function to correctly get the thread's effective priority. 
+We will always use the \lstinline|ThreadGetPriority()| function to correctly get the thread's effective priority. Take care that while iterating a mutex's waiting list in Step~\ref{item:iterate-mutex-list} above, that list could be concurrently changed by a thread waiting for the corresponding mutex, so entering the waiting list of that mutex. In ordor to avoid race conditions, we must take the lock of the mutex while iterating through its waiting list. 
+
 
 Another problem described in relation to priority inversion is the case a thread holding a mutex is waited by a higher priority thread (which, as established, donates its priority to the mutex holder), but the waiting thread is in its turn the holder of another mutex, which could be later on waited by an even higher-priority thread. The latter thread, would donate its priority to the second we mentioned, but if this donation would not go even further to the first (smallest) thread, the donation would not be effective. This is what lead to the nested priority requirements. However, in order to be able to manage it, we need to know for each thread, when being donated a priority (due to holding a mutex), if that thread is not waiting in its turn after another thread (holding another mutex, in its turn). In order to manage this, we decided to add a new field \lstinline|WaitedMutex| in the \lstinline|THREAD| structure, to keep a pointer to a mutex that is waited for by the thread. In case there is no such waited mutex, the pointer would be NULL. We must note that there is no need, in this case for a list of waited mutexes, while, the thread being a single, sequential execution, there is no way to wait for multiple mutexes in the same time (i.e. while being block waiting for a mutex, no execution of that thread take place, such that to be able to attempt taking another mutex). 
 
@@ -556,7 +563,11 @@ if (ThreadGetPriority(donor) > ThreadGetPriority(MutexHolder))
     \item the same nested mechanism must be repeated until the end of the waiting chain, i.e. until a thread waiting for no mutex.
 \end{enumerate}
 
+Finally, when a thread succeeds acquiring a mutex it waited for previosly, its \lstinline|WaitedMutex| must be set to NULL again. This must be done on the execution path corresponding the the mutex being acquired (after the while loop, waiting for the mutex to become available).
+
 The last problem we have to deal with in relation to priority inversion is about a thread changing its own real priority, in function \lstinline|ThreadSetPriority()|. In this case, it is possible for a thread to increase its priority to a value higher than its currently donated priority (i.e. its effective priority), in which case, obviously, the effective priority must be given the same value like the current real one. A very simple way (though, not so efficient) to compute the thread's new effective priority would be to call the function \lstinline|ThreadRecomputePriority()|.
+
+While changing the effective priority of a thread during the (nested) priority donation process, we can face race conditions, because there could be multiple donations taking place in the same time: for instance, multiple threads trying to get different mutexes, whose holders are all waiting for the same mutex, so there could be concurrent attempts to change the priority of that mutex holder. Also, if that thread wants to change its own priority, calling \lstinline|ThreadSetPriority()| function, there is an additional competing attempt to change that thread's effective priority. Because of race conditions like these, a thread's priority fields must be protected by a lock. We add for this the \lstinline|PriorityProtectionLock| lock.
 
  
 \subsubsection{Advanced Scheduler (MLFQ). Dynamic-Priority Scheduler}
