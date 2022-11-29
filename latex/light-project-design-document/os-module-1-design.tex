@@ -289,8 +289,8 @@ _ThreadExit(...)
 
     if(!pParent)
     {
-    LOG("Thread [ID=%d] created on CPU [ID=%d]" ]
-        "is finishing on CPU [ID=%d], while it's parent"\
+    LOG("Thread [ID=%d] created on CPU [ID=%d]" \
+        "is finishing on CPU [ID=%d], while it's parent" \
         "thread is already destroyed!.",
         pThread->Tid,
         PThread->CreationCpuApicId,
@@ -299,7 +299,7 @@ _ThreadExit(...)
     else
     {
         LOG("Thread [ID=%d] created on CPU [ID=%d]" \
-        "is finishing on CPU [ID=%d], while it's parent"\
+        "is finishing on CPU [ID=%d], while it's parent" \
         "thread [ID=%d] still has more %d child threads",
         pThread->Tid,
         PThread->CreationCpuApicId,
