@@ -10,7 +10,7 @@
 #include "gdtmu.h"
 #include "pe_exports.h"
 
-#define TID_INCREMENT               4
+#define TID_INCREMENT               0x10
 
 #define THREAD_TIME_SLICE           1
 
@@ -36,6 +36,7 @@ typedef struct _THREAD_SYSTEM_DATA
 
     _Guarded_by_(ReadyThreadsLock)
     LIST_ENTRY          ReadyThreadsList;
+    QWORD               NumberOfThreads;
 } THREAD_SYSTEM_DATA, *PTHREAD_SYSTEM_DATA;
 
 static THREAD_SYSTEM_DATA m_threadSystemData;
@@ -145,6 +146,7 @@ ThreadSystemPreinit(
 
     InitializeListHead(&m_threadSystemData.ReadyThreadsList);
     LockInit(&m_threadSystemData.ReadyThreadsLock);
+    m_threadSystemData.NumberOfThreads = 0;
 }
 
 STATUS
@@ -550,6 +552,8 @@ ThreadExit(
     LOG_FUNC_START_THREAD;
 
     pThread = GetCurrentThread();
+    LOG("Existing thread: name = %s TID = %s\n", pThread->Name, pThread->Id);
+    m_threadSystemData.NumberOfThreads--;
 
     CpuIntrDisable();
 
@@ -799,6 +803,9 @@ _ThreadInit(
         LockAcquire(&m_threadSystemData.AllThreadsLock, &oldIntrState);
         InsertTailList(&m_threadSystemData.AllThreadsList, &pThread->AllList);
         LockRelease(&m_threadSystemData.AllThreadsLock, oldIntrState);
+
+        LOG("Created thread: name = %s TID = %s\n", pThread->Name, pThread->Id);
+        m_threadSystemData.NumberOfThreads++;
     }
     __finally
     {

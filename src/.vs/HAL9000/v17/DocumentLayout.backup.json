@@ -1,0 +1,85 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Iulia\\OneDrive - Technical University of Cluj-Napoca\\Desktop\\OSD\\HAL9000\\src\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{79A21DCA-19AF-4F8E-9B83-62D7CF504104}|HAL9000\\HAL9000.vcxproj|C:\\Users\\Iulia\\OneDrive - Technical University of Cluj-Napoca\\Desktop\\OSD\\HAL9000\\src\\HAL9000\\src\\thread.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{79A21DCA-19AF-4F8E-9B83-62D7CF504104}|HAL9000\\HAL9000.vcxproj|solutionrelative:HAL9000\\src\\thread.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{79A21DCA-19AF-4F8E-9B83-62D7CF504104}|HAL9000\\HAL9000.vcxproj|C:\\Users\\Iulia\\OneDrive - Technical University of Cluj-Napoca\\Desktop\\OSD\\HAL9000\\src\\HAL9000\\src\\cmd_thread_helper.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{79A21DCA-19AF-4F8E-9B83-62D7CF504104}|HAL9000\\HAL9000.vcxproj|solutionrelative:HAL9000\\src\\cmd_thread_helper.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{79A21DCA-19AF-4F8E-9B83-62D7CF504104}|HAL9000\\HAL9000.vcxproj|C:\\Users\\Iulia\\OneDrive - Technical University of Cluj-Napoca\\Desktop\\OSD\\HAL9000\\src\\HAL9000\\src\\system.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{79A21DCA-19AF-4F8E-9B83-62D7CF504104}|HAL9000\\HAL9000.vcxproj|solutionrelative:HAL9000\\src\\system.c||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{098EB03E-8151-46DB-9052-5136D9BC14EA}|CommonLibUnitTests\\CommonLibUnitTests.vcxproj|C:\\Users\\Iulia\\OneDrive - Technical University of Cluj-Napoca\\Desktop\\OSD\\HAL9000\\src\\CommonLibUnitTests\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{098EB03E-8151-46DB-9052-5136D9BC14EA}|CommonLibUnitTests\\CommonLibUnitTests.vcxproj|solutionrelative:CommonLibUnitTests\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "system.c",
+              "DocumentMoniker": "C:\\Users\\Iulia\\OneDrive - Technical University of Cluj-Napoca\\Desktop\\OSD\\HAL9000\\src\\HAL9000\\src\\system.c",
+              "RelativeDocumentMoniker": "HAL9000\\src\\system.c",
+              "ToolTip": "C:\\Users\\Iulia\\OneDrive - Technical University of Cluj-Napoca\\Desktop\\OSD\\HAL9000\\src\\HAL9000\\src\\system.c",
+              "RelativeToolTip": "HAL9000\\src\\system.c",
+              "ViewState": "AgIAADwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000423|",
+              "WhenOpened": "2024-10-11T12:25:46.868Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "cmd_thread_helper.c",
+              "DocumentMoniker": "C:\\Users\\Iulia\\OneDrive - Technical University of Cluj-Napoca\\Desktop\\OSD\\HAL9000\\src\\HAL9000\\src\\cmd_thread_helper.c",
+              "RelativeDocumentMoniker": "HAL9000\\src\\cmd_thread_helper.c",
+              "ToolTip": "C:\\Users\\Iulia\\OneDrive - Technical University of Cluj-Napoca\\Desktop\\OSD\\HAL9000\\src\\HAL9000\\src\\cmd_thread_helper.c",
+              "RelativeToolTip": "HAL9000\\src\\cmd_thread_helper.c",
+              "ViewState": "AgIAAGkAAAAAAAAAAAAAAIIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000423|",
+              "WhenOpened": "2024-10-11T12:13:10.72Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "thread.c",
+              "DocumentMoniker": "C:\\Users\\Iulia\\OneDrive - Technical University of Cluj-Napoca\\Desktop\\OSD\\HAL9000\\src\\HAL9000\\src\\thread.c",
+              "RelativeDocumentMoniker": "HAL9000\\src\\thread.c",
+              "ToolTip": "C:\\Users\\Iulia\\OneDrive - Technical University of Cluj-Napoca\\Desktop\\OSD\\HAL9000\\src\\HAL9000\\src\\thread.c",
+              "RelativeToolTip": "HAL9000\\src\\thread.c",
+              "ViewState": "AgIAACYAAAAAAAAAAIAwwDEAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000423|",
+              "WhenOpened": "2024-10-11T11:37:53.914Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "main.cpp",
+              "DocumentMoniker": "C:\\Users\\Iulia\\OneDrive - Technical University of Cluj-Napoca\\Desktop\\OSD\\HAL9000\\src\\CommonLibUnitTests\\main.cpp",
+              "RelativeDocumentMoniker": "CommonLibUnitTests\\main.cpp",
+              "ToolTip": "C:\\Users\\Iulia\\OneDrive - Technical University of Cluj-Napoca\\Desktop\\OSD\\HAL9000\\src\\CommonLibUnitTests\\main.cpp",
+              "RelativeToolTip": "CommonLibUnitTests\\main.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2024-10-11T11:31:03.394Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

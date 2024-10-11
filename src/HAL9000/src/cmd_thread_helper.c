@@ -129,6 +129,7 @@ void
 
     ASSERT(NumberOfParameters == 0);
 
+    //Have to add a LOG here
     LOG("%7s", "TID|");
     LOG("%20s", "Name|");
     LOG("%5s", "Prio|");
