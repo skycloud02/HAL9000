@@ -12,7 +12,7 @@
 
 #define TID_INCREMENT               0x10
 
-#define THREAD_TIME_SLICE           1
+#define THREAD_TIME_SLICE           4
 
 extern void ThreadStart();
 
@@ -334,6 +334,8 @@ ThreadCreateEx(
         return status;
     }
 
+    pThread->ParentId = GetCurrentThread()->Id;
+
     ProcessInsertThreadInList(Process, pThread);
 
     // the reference must be done outside _ThreadInit
@@ -552,7 +554,7 @@ ThreadExit(
     LOG_FUNC_START_THREAD;
 
     pThread = GetCurrentThread();
-    LOG("Existing thread: name = %s TID = %s\n", pThread->Name, pThread->Id);
+    LOG("Existing thread: name = %s TID = %x\n", pThread->Name, pThread->Id);
     m_threadSystemData.NumberOfThreads--;
 
     CpuIntrDisable();
@@ -695,6 +697,7 @@ ThreadExecuteForEachThreadEntry(
 }
 
 void
+
 SetCurrentThread(
     IN      PTHREAD     Thread
     )
@@ -804,7 +807,7 @@ _ThreadInit(
         InsertTailList(&m_threadSystemData.AllThreadsList, &pThread->AllList);
         LockRelease(&m_threadSystemData.AllThreadsLock, oldIntrState);
 
-        LOG("Created thread: name = %s TID = %s\n", pThread->Name, pThread->Id);
+        LOG("Created thread: name = %s TID = %x\n", pThread->Name, pThread->Id);
         m_threadSystemData.NumberOfThreads++;
     }
     __finally

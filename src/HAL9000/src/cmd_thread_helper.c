@@ -127,6 +127,8 @@ void
 {
     STATUS status;
 
+    LOG("%5s", "NumberOfParameters|");
+
     ASSERT(NumberOfParameters == 0);
 
     //Have to add a LOG here
@@ -138,6 +140,7 @@ void
     LOG("%10s", "Prt ticks|");
     LOG("%10s", "Ttl ticks|");
     LOG("%10s", "Process|");
+    LOG("%10s", "ParentId|");
     LOG("\n");
 
     status = ThreadExecuteForEachThreadEntry(_CmdThreadPrint, NULL );
